@@ -1,0 +1,67 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8"/>
+  <title>VeriCase Docs (Starter)</title>
+  <style>
+    body { font-family: system-ui, Arial, sans-serif; margin: 20px; }
+    .row { display:flex; gap:20px; }
+    .col { flex:1; }
+    input, button { padding:8px; }
+    .card { border:1px solid #ddd; padding:10px; margin:8px 0; border-radius:6px; }
+    .muted { color:#666; font-size:12px; }
+  </style>
+</head>
+<body>
+  <h2>VeriCase Docs — Minimal UI</h2>
+  <div class="row">
+    <div class="col">
+      <h3>Upload</h3>
+      <form id="uploadForm">
+        <input type="file" id="file" name="file" required /><br/><br/>
+        <input type="text" id="title" name="title" placeholder="Optional title"/><br/><br/>
+        <button>Upload</button>
+      </form>
+      <div id="uploadResult"></div>
+    </div>
+    <div class="col">
+      <h3>Search</h3>
+      <input type="text" id="q" placeholder="Search text..." style="width:70%"/>
+      <button id="go">Go</button>
+      <div id="results"></div>
+    </div>
+  </div>
+
+  <script>
+    const api = window.location.origin.replace(/\/$/, '');
+
+    document.getElementById('uploadForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const fd = new FormData();
+      const file = document.getElementById('file').files[0];
+      const title = document.getElementById('title').value;
+      fd.append('file', file);
+      if (title) fd.append('title', title);
+      const r = await fetch(api.replace('/ui','') + '/documents', { method:'POST', body: fd });
+      const j = await r.json();
+      document.getElementById('uploadResult').innerHTML = '<div class="card"><b>Uploaded:</b> ' + (j.id || JSON.stringify(j)) + ' (processing...)</div>';
+    });
+
+    document.getElementById('go').addEventListener('click', async () => {
+      const q = document.getElementById('q').value;
+      const r = await fetch(api.replace('/ui','') + '/search?q=' + encodeURIComponent(q));
+      const j = await r.json();
+      const div = document.getElementById('results');
+      div.innerHTML = '<div class="muted">' + j.count + ' results</div>';
+      j.hits.forEach(h => {
+        const el = document.createElement('div');
+        el.className = 'card';
+        el.innerHTML = '<b>' + (h.title || h.filename) + '</b><br/>' +
+                       '<span class="muted">score: ' + h.score.toFixed(2) + '</span><br/>' +
+                       (h.snippet ? h.snippet : '');
+        div.appendChild(el);
+      });
+    });
+  </script>
+</body>
+</html>

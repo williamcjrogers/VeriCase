@@ -1,0 +1,300 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>VeriCase — Make Time Your Ally</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root{
+      --navy:#1E293B;
+      --teal:#0D9488;
+      --ink:#0F172A;
+      --slate:#64748B;
+      --bg:#F8FAFC;
+      --line:#E2E8F0;
+      --panel:#FFFFFF;
+      --accent1:#3B82F6;
+      --accent2:#1E3A8A;
+      --good:#16A34A;
+    }
+    *{box-sizing:border-box}
+    html,body{margin:0;padding:0;background:var(--bg);color:var(--navy);font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,'Helvetica Neue',Arial,'Noto Sans','Liberation Sans',sans-serif}
+    a{color:inherit;text-decoration:none}
+    .container{max-width:1200px;margin:0 auto;padding:0 20px}
+    /* Nav */
+    .nav{position:sticky;top:0;z-index:50;background:rgba(255,255,255,.85);backdrop-filter:saturate(1.8) blur(8px);border-bottom:1px solid var(--line)}
+    .nav-inner{display:flex;align-items:center;justify-content:space-between;height:64px}
+    .nav-links{display:flex;gap:28px;font-weight:600;color:var(--slate)}
+    .nav-cta{padding:10px 16px;background:var(--teal);color:#fff;border-radius:8px;font-weight:700}
+    .logo{display:flex;gap:10px;align-items:center}
+    .logo svg{height:28px}
+    /* Hero */
+    .hero{background:linear-gradient(180deg,#fff 0%, #F8FAFC 60%);border-bottom:1px solid var(--line);position:relative;overflow:hidden}
+    .hero .container{display:grid;grid-template-columns:1.1fr .9fr;gap:32px;align-items:center;padding:48px 20px}
+    .eyebrow{color:var(--teal);font-weight:800;font-size:12px;letter-spacing:.12em;text-transform:uppercase;margin-bottom:8px}
+    h1{font-size:52px;line-height:1.08;margin:0 0 16px 0;font-weight:800;color:var(--navy)}
+    .lead{font-size:18px;line-height:1.6;color:var(--slate);max-width:46ch;margin:0 0 24px 0}
+    .cta-row{display:flex;gap:14px;align-items:center;flex-wrap:wrap}
+    .btn{display:inline-flex;align-items:center;justify-content:center;height:48px;padding:0 18px;border-radius:10px;font-weight:800}
+    .btn-primary{background:var(--teal);color:#fff}
+    .btn-ghost{border:1px solid var(--line);color:var(--navy);background:#fff}
+    .hero-card{background:#fff;border:1px solid var(--line);border-radius:12px;box-shadow:0 10px 20px rgba(0,0,0,.05);padding:18px}
+    .panel-title{font-weight:800;color:var(--navy);font-size:16px;margin-bottom:8px}
+    .timeline{display:grid;grid-template-columns:24px 1fr;gap:12px;margin-top:8px}
+    .t-line{width:3px;background:var(--navy);border-radius:2px;margin:4px 0}
+    .t-item{display:flex;gap:10px;align-items:center}
+    .dot{width:10px;height:10px;border-radius:999px;background:var(--teal)}
+    .pill{height:22px;border-radius:6px;background:#F1F5F9;display:inline-flex;align-items:center;padding:0 8px;font-size:12px;color:var(--navy);margin:2px 0}
+    /* Section headings */
+    .section{padding:64px 0}
+    .section h2{font-size:36px;line-height:1.15;margin:0 0 10px 0;font-weight:800}
+    .section p.section-sub{color:var(--slate);margin:0 0 26px 0}
+    /* Features */
+    .cards{display:grid;grid-template-columns:repeat(3,1fr);gap:18px}
+    .card{background:#fff;border:1px solid var(--line);border-radius:12px;box-shadow:0 6px 12px rgba(0,0,0,.04);padding:18px;display:flex;flex-direction:column;gap:10px}
+    .card h3{margin:0;font-size:20px}
+    .card p{margin:0;color:var(--slate);line-height:1.6}
+    .icon{width:36px;height:36px;border-radius:8px;background:rgba(13,148,136,.1);display:grid;place-items:center;color:var(--teal);font-weight:900}
+    /* Construction add-in */
+    .dark{background:var(--navy);color:#fff;position:relative;overflow:hidden}
+    .dark h2{color:#fff}
+    .dark p.section-sub{color:#CBD5E1}
+    .gantt{background:#fff;border:1px solid var(--line);border-radius:12px;box-shadow:0 10px 18px rgba(0,0,0,.25);padding:16px}
+    .gantt-grid{display:grid;grid-template-columns:220px 1fr;gap:10px;font-size:14px}
+    .gantt-rows{display:grid;gap:10px}
+    .bar{height:18px;border-radius:4px;background:#64748B}
+    .bar-actual{height:18px;border-radius:4px;background:rgba(13,148,136,.85);margin-top:6px}
+    .evidence{background:#F1F5F9;border-radius:6px;padding:8px 10px;font-size:13px;color:var(--navy);display:flex;justify-content:space-between;align-items:center}
+    .tag{color:var(--teal);font-weight:800}
+    /* Pricing Teaser */
+    .pricing{background:#fff;border:1px solid var(--line);border-radius:12px;padding:18px;display:flex;flex-wrap:wrap;gap:12px;align-items:center;justify-content:space-between}
+    .price{font-size:32px;font-weight:900;color:var(--navy)}
+    .foot{padding:40px 0;color:var(--slate);font-size:14px}
+    /* Responsive */
+    @media (max-width: 1000px){
+      .hero .container{grid-template-columns:1fr}
+      .cards{grid-template-columns:1fr 1fr}
+    }
+    @media (max-width: 640px){
+      h1{font-size:40px}
+      .cards{grid-template-columns:1fr}
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Top Nav -->
+  <nav class="nav">
+    <div class="container nav-inner">
+      <div class="logo" aria-label="VeriCase logo">
+        <!-- Vector logo symbol -->
+        <svg viewBox="0 0 900 200" width="150" height="34" aria-hidden="true">
+          <defs>
+            <linearGradient id="vcTickGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+              <stop offset="0%" stop-color="#3B82F6"/>
+              <stop offset="100%" stop-color="#1E3A8A"/>
+            </linearGradient>
+          </defs>
+          <g font-family="Inter,system-ui,-apple-system,'Segoe UI',Roboto,'Helvetica Neue',Arial" font-weight="800" font-size="150" fill="#1E293B">
+            <text x="0" y="145">VeriCase</text>
+          </g>
+          <path d="M 75 60 C 110 20, 150 5, 185 5 C 210 5, 225 15, 240 30"
+                fill="none" stroke="url(#vcTickGrad)" stroke-width="18"
+                stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </div>
+      <div class="nav-links">
+        <a href="#platform">Platform</a>
+        <a href="#construction">Construction Focus</a>
+        <a href="#pricing">Pricing</a>
+        <a class="nav-cta" href="#demo">Get Demo</a>
+      </div>
+    </div>
+  </nav>
+
+  <!-- HERO -->
+  <header class="hero" id="top">
+    <div class="container">
+      <div>
+        <div class="eyebrow">Evidence Intelligence for Email Archives</div>
+        <h1>Make Time Your Ally,<br>Not Your Enemy.</h1>
+        <p class="lead">
+          Construction and commercial disputes live in email. VeriCase reconstructs complex PST archives
+          into a single, forensic, message‑level chronology across custodians—so you can prove what happened and when.
+        </p>
+        <div class="cta-row" id="demo">
+          <a class="btn btn-primary" href="#">See VeriCase in Action</a>
+          <a class="btn btn-ghost" href="#platform">Explore the Platform</a>
+        </div>
+      </div>
+
+      <!-- Hero visual: Fragmented → Chronology Lens -->
+      <div class="hero-card" role="img" aria-label="Fragmented PST data funnelled into a timeline">
+        <div class="panel-title">The Chronology Lens™</div>
+        <div style="display:grid;grid-template-columns:1fr 48px 1fr;gap:12px;align-items:center">
+          <!-- Left: fragments -->
+          <div style="opacity:.75">
+            <div style="display:flex;gap:10px;flex-wrap:wrap">
+              <span class="pill">Custodian_A.pst</span>
+              <span class="pill" style="background:#E0F2F1;color:#0D9488">Thread 18</span>
+              <span class="pill">Re: Delivery</span>
+              <span class="pill">2022-11-04</span>
+              <span class="pill">.msg (4)</span>
+              <span class="pill">RFIs</span>
+              <span class="pill">minutes.pdf</span>
+              <span class="pill">jpg</span>
+              <span class="pill">Custodian_B.pst</span>
+              <span class="pill">FW:</span>
+              <span class="pill">MEP</span>
+              <span class="pill">Subcontract</span>
+            </div>
+          </div>
+          <!-- Middle: arrow -->
+          <div style="display:grid;place-items:center;">
+            <svg width="44" height="140" viewBox="0 0 44 140" fill="none">
+              <path d="M2 70 H42" stroke="#0D9488" stroke-width="3" stroke-dasharray="6 6"/>
+              <path d="M42 70 L32 64 M42 70 L32 76" stroke="#0D9488" stroke-width="3" />
+            </svg>
+          </div>
+          <!-- Right: timeline -->
+          <div>
+            <div class="timeline">
+              <div class="t-line"></div>
+              <div>
+                <div class="t-item"><span class="dot"></span><div class="pill" style="width:160px">Jan 12 — Site access</div></div>
+                <div class="t-item"><span class="dot"></span><div class="pill" style="width:140px">Feb 03 — RFI 24</div></div>
+                <div class="t-item"><span class="dot"></span><div class="pill" style="width:190px">Mar 15 — NCR #118 logged</div></div>
+                <div class="t-item"><span class="dot"></span><div class="pill" style="width:170px">Mar 28 — Delay notice</div></div>
+                <div class="t-item"><span class="dot"></span><div class="pill" style="width:210px">Apr 06 — Design change email</div></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- PLATFORM / DIFFERENTIATORS -->
+  <section class="section container" id="platform">
+    <h2>The VeriCase Difference</h2>
+    <p class="section-sub">Existing platforms overwhelm with complexity or miss the forensic detail. We provide the right balance for evidence‑based disputes.</p>
+    <div class="cards">
+      <article class="card">
+        <div class="icon">≡</div>
+        <h3>Chronology Lens™</h3>
+        <p>Ditch fragmented threads. Merge multiple PST files into a single, time‑ordered strip across all participants and custodians.</p>
+      </article>
+      <article class="card">
+        <div class="icon">◎</div>
+        <h3>Message‑Level Granularity</h3>
+        <p>Every email, not just threads. See atomic details of communication so you always know exactly who said what, when.</p>
+      </article>
+      <article class="card">
+        <div class="icon">▤</div>
+        <h3>Programme Awareness</h3>
+        <p>(Construction Add‑In) Link emails and evidence directly to baseline activities and delay events from your project schedule.</p>
+      </article>
+      <article class="card">
+        <div class="icon">🔎</div>
+        <h3>Smart Search & Tagging</h3>
+        <p>Full‑text + OCR, faceted filters, auto‑tag suggestions, and AI‑powered search to find pivotal facts instantly.</p>
+      </article>
+      <article class="card">
+        <div class="icon">✓</div>
+        <h3>Audit‑Ready Exports</h3>
+        <p>Generate defensible, bundle‑ready exports with one click. Bates‑numbered and hashed for integrity.</p>
+      </article>
+      <article class="card">
+        <div class="icon">£</div>
+        <h3>Accessible Pricing</h3>
+        <p>Subscription per matter, not per GB. Built for consultants, contractors, and small to medium legal teams.</p>
+      </article>
+    </div>
+  </section>
+
+  <!-- CONSTRUCTION ADD‑IN -->
+  <section class="section dark" id="construction">
+    <div class="container">
+      <div style="display:grid;grid-template-columns:1.1fr .9fr;gap:24px;align-items:start">
+        <div>
+          <div class="eyebrow">Specialized Tools</div>
+          <h2>The Construction Add‑In: Programme Awareness.</h2>
+          <p class="section-sub">Construction claims require more than just email review. VeriCase integrates directly with Primavera/MS Project to align evidence to planned vs. actual.</p>
+
+          <ul style="margin:0 0 18px 0;padding-left:18px;line-height:1.8">
+            <li><strong>Link Evidence to Baseline Activities</strong></li>
+            <li><strong>Tag & Categorize Delay Events</strong></li>
+            <li><strong>Visualize Impacts on the Critical Path</strong></li>
+          </ul>
+
+          <a class="btn btn-ghost" href="#">Explore the Construction Add‑In</a>
+        </div>
+
+        <div class="gantt">
+          <div class="panel-title" style="margin-bottom:12px;color:var(--navy)">Project Schedule (Baseline vs Actual)</div>
+          <div class="gantt-grid">
+            <div>
+              <div style="margin-bottom:14px;font-weight:800;color:var(--navy)">Tasks</div>
+              <div class="gantt-rows">
+                <div><div style="color:var(--slate)">A101: Site Preparation</div><div class="bar" style="width:120px"></div></div>
+                <div><div style="color:var(--slate)">A102: Foundation Excavation</div><div class="bar" style="width:170px"></div><div class="bar-actual" style="width:240px"></div></div>
+                <div><div style="color:var(--slate)">A103: Concrete Pour</div><div class="bar" style="width:90px"></div></div>
+              </div>
+            </div>
+            <div>
+              <div style="display:flex;gap:12px;color:var(--slate);font-weight:800;margin-bottom:14px">
+                <span>Jan</span><span>Feb</span><span>Mar</span>
+              </div>
+              <div class="gantt-rows">
+                <div style="height:54px;border-bottom:1px dashed var(--line)"></div>
+                <div style="height:90px;border-bottom:1px dashed var(--line)"></div>
+                <div style="height:54px"></div>
+              </div>
+              <div style="margin-top:16px">
+                <div class="evidence">
+                  <span>Email: “Unforeseen ground conditions encountered.” (J. Smith, Feb 15)</span>
+                  <span class="tag">[Delay Tag: Site Conditions]</span>
+                </div>
+                <div class="evidence" style="margin-top:10px">
+                  <span>Report: Daily Log – Feb 16 (Equipment Failure)</span>
+                  <span class="tag">[Delay Tag: Internal]</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- PRICING TEASER -->
+  <section class="section container" id="pricing">
+    <h2>Simple, Fair Pricing</h2>
+    <p class="section-sub">Per‑matter subscriptions sized for real‑world disputes, with unlimited GB.</p>
+    <div class="pricing">
+      <div>
+        <div style="font-weight:800;margin-bottom:2px">Starter (per matter)</div>
+        <div class="price">£499 <span style="font-size:16px;color:var(--slate);font-weight:600">/ month</span></div>
+      </div>
+      <ul style="margin:0;padding-left:18px;line-height:1.9">
+        <li>Up to 3 custodians</li>
+        <li>Chronology Lens™ & Smart Search</li>
+        <li>Audit‑ready exports</li>
+      </ul>
+      <a class="btn btn-primary" href="#">Start a Matter</a>
+    </div>
+  </section>
+
+  <!-- FOOTER -->
+  <footer class="foot">
+    <div class="container" style="display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px">
+      <div>© VeriCase Ltd · Evidence to outcome</div>
+      <div><a href="#">Privacy</a> · <a href="#">Terms</a> · <a href="#">Contact</a></div>
+    </div>
+  </footer>
+
+</body>
+</html>

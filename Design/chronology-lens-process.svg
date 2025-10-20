@@ -1,0 +1,55 @@
+<svg width="1200" height="200" viewBox="0 0 1200 200" xmlns="http://www.w3.org/2000/svg">
+  <style>
+    .label { font-family: Arial, sans-serif; font-size: 16px; fill: #37474F; text-anchor: middle; font-weight: 500; }
+    .connector { stroke: #CFD8DC; stroke-width: 4; stroke-dasharray: 10 5; }
+    .arrowhead { fill: #CFD8DC; }
+  </style>
+
+  <line x1="350" y1="100" x2="450" y2="100" class="connector" />
+  <polygon points="450,95 450,105 460,100" class="arrowhead" />
+
+  <line x1="740" y1="100" x2="840" y2="100" class="connector" />
+  <polygon points="840,95 840,105 850,100" class="arrowhead" />
+
+  <g transform="translate(100, 25)">
+    <circle cx="100" cy="75" r="60" stroke="#37474F" stroke-width="4" fill="none" />
+
+    <line x1="50" y1="55" x2="150" y2="55" stroke="#37474F" stroke-width="3" stroke-dasharray="5 3" />
+    <line x1="50" y1="95" x2="150" y2="95" stroke="#37474F" stroke-width="3" stroke-dasharray="5 3" />
+
+    <circle cx="70" cy="75" r="8" fill="#11C7A3" />
+    <circle cx="100" cy="75" r="8" fill="#11C7A3" />
+    <circle cx="130" cy="75" r="8" fill="#11C7A3" />
+
+    <text x="100" y="165" class="label">1. Alignment</text>
+  </g>
+
+  <g transform="translate(500, 25)">
+    <circle cx="100" cy="75" r="60" fill="#37474F" />
+
+    <g stroke="#11C7A3" stroke-width="3">
+      <line x1="100" y1="75" x2="100" y2="35" />
+      <line x1="100" y1="75" x2="134.6" y2="55" />
+      <line x1="100" y1="75" x2="134.6" y2="95" />
+      <line x1="100" y1="75" x2="100" y2="115" />
+      <line x1="100" y1="75" x2="65.4" y2="95" />
+      <line x1="100" y1="75" x2="65.4" y2="55" />
+    </g>
+
+    <circle cx="100" cy="75" r="10" fill="#11C7A3" />
+    <circle cx="100" cy="75" r="5" fill="#37474F" />
+
+    <text x="100" y="165" class="label">2. Focus &amp; Filter</text>
+  </g>
+
+  <g transform="translate(900, 25)">
+    <circle cx="100" cy="75" r="60" stroke="#37474F" stroke-width="4" fill="none" />
+
+    <line x1="40" y1="75" x2="160" y2="75" stroke="#11C7A3" stroke-width="12" />
+
+    <path d="M 60 58 A 30 30 0 0 1 140 58" stroke="#37474F" stroke-width="5" fill="none" />
+    <path d="M 60 92 A 30 30 0 0 0 140 92" stroke="#37474F" stroke-width="5" fill="none" />
+
+    <text x="100" y="165" class="label">3. Focused Timeline</text>
+  </g>
+</svg>
