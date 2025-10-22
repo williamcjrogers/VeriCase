@@ -1,0 +1,735 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>File Viewer - VeriCase Docs</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #1a1a1a;
+      --surface: #2d2d2d;
+      --text: #e0e0e0;
+      --muted: #9ca3af;
+      --border: #404040;
+      --accent: #2563eb;
+      --accent-hover: #1d4ed8;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      overflow: hidden;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    #toolbar {
+      background: var(--surface);
+      padding: 12px 20px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      flex-wrap: wrap;
+      z-index: 100;
+    }
+
+    #toolbar .title {
+      font-weight: 600;
+      font-size: 14px;
+      flex: 1;
+      min-width: 200px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    #toolbar .controls {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+
+    button {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      color: var(--text);
+      padding: 6px 12px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: 500;
+      transition: all 0.2s;
+    }
+
+    button:hover {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: white;
+    }
+
+    button:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    button:disabled:hover {
+      background: var(--surface);
+      border-color: var(--border);
+      color: var(--text);
+    }
+
+    #viewer-container {
+      flex: 1;
+      overflow: auto;
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: var(--bg);
+    }
+
+    #pdf-canvas-container {
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      gap: 12px;
+      padding: 20px;
+    }
+
+    canvas {
+      display: block;
+      background: white;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+      border-radius: 4px;
+    }
+
+    #image-container {
+      display: none;
+      max-width: 100%;
+      max-height: 100%;
+      padding: 20px;
+    }
+
+    #image-container img {
+      max-width: 100%;
+      max-height: calc(100vh - 120px);
+      object-fit: contain;
+      border-radius: 4px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+    }
+
+    #video-container {
+      display: none;
+      max-width: 90%;
+      padding: 20px;
+    }
+
+    #video-container video {
+      width: 100%;
+      max-height: calc(100vh - 120px);
+      border-radius: 8px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+    }
+
+    #audio-container {
+      display: none;
+      padding: 40px;
+      text-align: center;
+    }
+
+    #audio-container audio {
+      width: 100%;
+      max-width: 500px;
+    }
+
+    #text-container {
+      display: none;
+      width: 100%;
+      height: 100%;
+      padding: 20px;
+    }
+
+    #text-content {
+      width: 100%;
+      height: 100%;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 20px;
+      font-family: 'Monaco', 'Menlo', monospace;
+      font-size: 13px;
+      line-height: 1.6;
+      overflow: auto;
+      white-space: pre-wrap;
+      word-wrap: break-word;
+    }
+
+    #office-container {
+      display: none;
+      width: 100%;
+      height: 100%;
+    }
+
+    #office-frame {
+      width: 100%;
+      height: 100%;
+      border: none;
+      background: white;
+    }
+
+    #msg-container {
+      display: none;
+      width: 100%;
+      height: 100%;
+      overflow: auto;
+      padding: 20px;
+    }
+
+    .email-viewer {
+      max-width: 900px;
+      margin: 0 auto;
+      background: white;
+      border-radius: 8px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      overflow: hidden;
+    }
+
+    .email-header {
+      background: var(--surface);
+      padding: 20px;
+      border-bottom: 2px solid var(--border);
+    }
+
+    .email-header-row {
+      display: grid;
+      grid-template-columns: 100px 1fr;
+      gap: 12px;
+      margin-bottom: 12px;
+    }
+
+    .email-header-row:last-child {
+      margin-bottom: 0;
+    }
+
+    .email-label {
+      font-weight: 600;
+      color: var(--muted);
+    }
+
+    .email-value {
+      color: var(--text);
+      word-break: break-word;
+    }
+
+    .email-subject {
+      font-size: 20px;
+      font-weight: 600;
+      color: var(--text);
+      margin-bottom: 16px;
+    }
+
+    .email-body {
+      padding: 24px;
+      line-height: 1.6;
+      color: var(--text);
+    }
+
+    .email-attachments {
+      padding: 20px;
+      background: var(--subsurface);
+      border-top: 1px solid var(--border);
+    }
+
+    .attachment-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px;
+      background: white;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      margin-bottom: 8px;
+    }
+
+    .attachment-icon {
+      font-size: 24px;
+    }
+
+    #unsupported-container {
+      display: none;
+      padding: 60px 40px;
+      text-align: center;
+    }
+
+    #unsupported-container .icon {
+      font-size: 64px;
+      margin-bottom: 20px;
+      opacity: 0.5;
+    }
+
+    #unsupported-container h2 {
+      font-size: 20px;
+      margin-bottom: 12px;
+      font-weight: 600;
+    }
+
+    #unsupported-container p {
+      color: var(--muted);
+      margin-bottom: 24px;
+      font-size: 14px;
+    }
+
+    #unsupported-container .download-btn {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: white;
+      padding: 12px 24px;
+      font-size: 16px;
+    }
+
+    .loading {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 16px;
+      padding: 60px;
+    }
+
+    .spinner {
+      width: 40px;
+      height: 40px;
+      border: 3px solid var(--border);
+      border-top-color: var(--accent);
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    .error {
+      padding: 60px 40px;
+      text-align: center;
+      color: #ef4444;
+    }
+
+    .pagination {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      color: var(--muted);
+      font-size: 14px;
+    }
+  </style>
+</head>
+<body>
+  <div id="toolbar">
+    <div class="title" id="file-title">Loading...</div>
+    <div class="controls">
+      <div class="pagination" id="pdf-pagination" style="display: none;">
+        <button id="prev-page">◀ Prev</button>
+        <span><span id="page-num">1</span> / <span id="page-count">?</span></span>
+        <button id="next-page">Next ▶</button>
+      </div>
+      <div style="display: flex; gap: 8px; align-items: center;">
+        <span id="zoom-controls" style="display: none; margin-right: 8px;">
+          <button id="zoom-out">−</button>
+          <button id="zoom-in">+</button>
+          <button id="zoom-reset">100%</button>
+        </span>
+        <button id="download-btn">⬇ Download</button>
+        <button onclick="window.close()">✕ Close</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="viewer-container">
+    <div class="loading" id="loading">
+      <div class="spinner"></div>
+      <div>Loading file...</div>
+    </div>
+
+    <div id="pdf-canvas-container">
+      <canvas id="pdf-canvas"></canvas>
+    </div>
+
+    <div id="image-container">
+      <img id="image-viewer" alt="Image">
+    </div>
+
+    <div id="video-container">
+      <video id="video-viewer" controls></video>
+    </div>
+
+    <div id="audio-container">
+      <div style="margin-bottom: 20px; font-size: 48px;">🎵</div>
+      <h3 style="margin-bottom: 20px;">Audio File</h3>
+      <audio id="audio-viewer" controls></audio>
+    </div>
+
+    <div id="text-container">
+      <div id="text-content"></div>
+    </div>
+
+    <div id="office-container">
+      <iframe id="office-frame"></iframe>
+    </div>
+
+    <div id="msg-container">
+      <div class="email-viewer">
+        <div class="email-header">
+          <div class="email-subject" id="msg-subject"></div>
+          <div class="email-header-row">
+            <div class="email-label">From:</div>
+            <div class="email-value" id="msg-from"></div>
+          </div>
+          <div class="email-header-row">
+            <div class="email-label">To:</div>
+            <div class="email-value" id="msg-to"></div>
+          </div>
+          <div class="email-header-row" id="msg-cc-row" style="display: none;">
+            <div class="email-label">CC:</div>
+            <div class="email-value" id="msg-cc"></div>
+          </div>
+          <div class="email-header-row">
+            <div class="email-label">Date:</div>
+            <div class="email-value" id="msg-date"></div>
+          </div>
+        </div>
+        <div class="email-body" id="msg-body"></div>
+        <div class="email-attachments" id="msg-attachments" style="display: none;">
+          <div style="font-weight: 600; margin-bottom: 12px;">Attachments:</div>
+          <div id="msg-attachments-list"></div>
+        </div>
+      </div>
+    </div>
+
+    <div id="unsupported-container">
+      <div class="icon">📄</div>
+      <h2>Preview Not Available</h2>
+      <p id="unsupported-message">This file type cannot be previewed in the browser.</p>
+      <button class="download-btn" id="unsupported-download">Download File</button>
+    </div>
+
+    <div class="error" id="error" style="display: none;"></div>
+  </div>
+
+  <script type="module">
+    const params = new URLSearchParams(location.search);
+    const fileUrl = params.get('file');
+    const fileName = params.get('filename') || 'document';
+    const contentType = params.get('type') || '';
+
+    if (!fileUrl) {
+      showError('No file URL provided');
+      throw new Error('No file param');
+    }
+
+    document.getElementById('file-title').textContent = fileName;
+    document.getElementById('download-btn').onclick = () => downloadFile(fileUrl, fileName);
+
+    const containers = {
+      loading: document.getElementById('loading'),
+      pdf: document.getElementById('pdf-canvas-container'),
+      image: document.getElementById('image-container'),
+      video: document.getElementById('video-container'),
+      audio: document.getElementById('audio-container'),
+      text: document.getElementById('text-container'),
+      office: document.getElementById('office-container'),
+      msg: document.getElementById('msg-container'),
+      unsupported: document.getElementById('unsupported-container'),
+      error: document.getElementById('error')
+    };
+
+    function hideAll() {
+      Object.values(containers).forEach(el => el.style.display = 'none');
+    }
+
+    function showContainer(name) {
+      hideAll();
+      containers[name].style.display = ['text', 'office', 'msg'].includes(name) ? 'block' : 'flex';
+    }
+
+    function showError(message) {
+      hideAll();
+      containers.error.style.display = 'block';
+      containers.error.textContent = `Error: ${message}`;
+    }
+
+    function downloadFile(url, name) {
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = name;
+      a.click();
+    }
+
+    function detectFileType(filename, contentType) {
+      const ext = filename.split('.').pop().toLowerCase();
+      
+      // Images
+      if (['jpg', 'jpeg', 'png', 'gif', 'webp', 'svg', 'bmp'].includes(ext) || 
+          contentType.startsWith('image/')) {
+        return 'image';
+      }
+      
+      // Videos
+      if (['mp4', 'webm', 'ogg', 'mov', 'avi'].includes(ext) || 
+          contentType.startsWith('video/')) {
+        return 'video';
+      }
+      
+      // Audio
+      if (['mp3', 'wav', 'ogg', 'm4a', 'flac'].includes(ext) || 
+          contentType.startsWith('audio/')) {
+        return 'audio';
+      }
+      
+      // PDFs
+      if (ext === 'pdf' || contentType === 'application/pdf') {
+        return 'pdf';
+      }
+      
+      // Text files
+      if (['txt', 'md', 'json', 'xml', 'csv', 'log', 'yml', 'yaml', 'ini', 'conf'].includes(ext) ||
+          contentType.startsWith('text/')) {
+        return 'text';
+      }
+      
+      // Code files
+      if (['js', 'ts', 'jsx', 'tsx', 'py', 'java', 'c', 'cpp', 'h', 'cs', 'rb', 'go', 'rs', 'php', 'html', 'css', 'scss', 'sql'].includes(ext)) {
+        return 'text';
+      }
+      
+      // MSG/EML files (Outlook emails)
+      if (['msg', 'eml'].includes(ext) || 
+          contentType.includes('ms-outlook') ||
+          contentType.includes('vnd.ms-outlook')) {
+        return 'msg';
+      }
+      
+      // Office documents
+      if (['doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx'].includes(ext) ||
+          contentType.includes('msword') || 
+          contentType.includes('spreadsheet') || 
+          contentType.includes('presentation') ||
+          contentType.includes('officedocument')) {
+        return 'office';
+      }
+      
+      return 'unsupported';
+    }
+
+    async function loadImage() {
+      const img = document.getElementById('image-viewer');
+      img.onload = () => showContainer('image');
+      img.onerror = () => showError('Failed to load image');
+      img.src = fileUrl;
+    }
+
+    async function loadVideo() {
+      const video = document.getElementById('video-viewer');
+      video.onloadeddata = () => showContainer('video');
+      video.onerror = () => showError('Failed to load video');
+      video.src = fileUrl;
+    }
+
+    async function loadAudio() {
+      const audio = document.getElementById('audio-viewer');
+      audio.onloadeddata = () => showContainer('audio');
+      audio.onerror = () => showError('Failed to load audio');
+      audio.src = fileUrl;
+    }
+
+    async function loadText() {
+      try {
+        const response = await fetch(fileUrl);
+        if (!response.ok) throw new Error('Failed to fetch');
+        const text = await response.text();
+        document.getElementById('text-content').textContent = text;
+        showContainer('text');
+      } catch (error) {
+        showError('Failed to load text file');
+      }
+    }
+
+    async function loadOffice() {
+      // Use Microsoft Office Online Viewer
+      const viewerUrl = `https://view.officeapps.live.com/op/embed.aspx?src=${encodeURIComponent(fileUrl)}`;
+      document.getElementById('office-frame').src = viewerUrl;
+      showContainer('office');
+    }
+
+    async function loadMSG() {
+      try {
+        // Import MSG reader library
+        const MsgReader = (await import('https://cdn.jsdelivr.net/npm/@kenjiuno/msgreader@1.4.1/lib/MsgReader.min.js')).default;
+        
+        // Fetch the MSG file
+        const response = await fetch(fileUrl);
+        if (!response.ok) throw new Error('Failed to fetch MSG file');
+        const arrayBuffer = await response.arrayBuffer();
+        
+        // Parse MSG file
+        const msgReader = new MsgReader(arrayBuffer);
+        const fileData = msgReader.getFileData();
+        
+        // Display email metadata
+        document.getElementById('msg-subject').textContent = fileData.subject || '(No Subject)';
+        document.getElementById('msg-from').textContent = fileData.senderName || fileData.senderEmail || 'Unknown';
+        document.getElementById('msg-to').textContent = fileData.recipients?.map(r => r.name || r.email).join(', ') || 'Unknown';
+        
+        // CC field
+        if (fileData.cc) {
+          document.getElementById('msg-cc').textContent = fileData.cc;
+          document.getElementById('msg-cc-row').style.display = 'grid';
+        }
+        
+        // Date
+        const date = fileData.messageDeliveryTime || fileData.creationTime;
+        document.getElementById('msg-date').textContent = date ? new Date(date).toLocaleString() : 'Unknown';
+        
+        // Body
+        const body = fileData.body || fileData.bodyHTML || '(No content)';
+        const bodyEl = document.getElementById('msg-body');
+        if (fileData.bodyHTML) {
+          bodyEl.innerHTML = body;
+        } else {
+          bodyEl.textContent = body;
+        }
+        
+        // Attachments
+        if (fileData.attachments && fileData.attachments.length > 0) {
+          const attachmentsEl = document.getElementById('msg-attachments');
+          const attachmentsList = document.getElementById('msg-attachments-list');
+          attachmentsList.innerHTML = '';
+          
+          fileData.attachments.forEach(att => {
+            const item = document.createElement('div');
+            item.className = 'attachment-item';
+            item.innerHTML = `
+              <span class="attachment-icon">📎</span>
+              <div>
+                <div style="font-weight: 600;">${att.fileName || 'Untitled'}</div>
+                <div style="font-size: 0.85rem; color: var(--muted);">
+                  ${att.contentLength ? formatBytes(att.contentLength) : 'Unknown size'}
+                </div>
+              </div>
+            `;
+            attachmentsList.appendChild(item);
+          });
+          
+          attachmentsEl.style.display = 'block';
+        }
+        
+        showContainer('msg');
+      } catch (error) {
+        console.error('MSG parse error:', error);
+        // Fallback to showing raw email info
+        showError('Unable to parse MSG file. The file may be corrupted or use an unsupported format.');
+      }
+    }
+
+    function formatBytes(bytes) {
+      if (!bytes) return '0 B';
+      const k = 1024;
+      const sizes = ['B', 'KB', 'MB', 'GB'];
+      const i = Math.floor(Math.log(bytes) / Math.log(k));
+      return Math.round((bytes / Math.pow(k, i)) * 100) / 100 + ' ' + sizes[i];
+    }
+
+    async function loadPDF() {
+      try {
+        const pdfjsLib = await import("https://cdn.jsdelivr.net/npm/pdfjs-dist@4.7.76/build/pdf.min.mjs");
+        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdn.jsdelivr.net/npm/pdfjs-dist@4.7.76/build/pdf.worker.min.mjs';
+
+        let pdfDoc = null, pageNum = 1, scale = 1.5;
+        const canvas = document.getElementById('pdf-canvas');
+        const ctx = canvas.getContext('2d');
+
+        async function renderPage(num) {
+          const page = await pdfDoc.getPage(num);
+          const viewport = page.getViewport({ scale });
+          canvas.width = viewport.width;
+          canvas.height = viewport.height;
+          await page.render({ canvasContext: ctx, viewport }).promise;
+          document.getElementById('page-num').textContent = num;
+          document.getElementById('page-count').textContent = pdfDoc.numPages;
+          document.getElementById('prev-page').disabled = num <= 1;
+          document.getElementById('next-page').disabled = num >= pdfDoc.numPages;
+        }
+
+        pdfDoc = await pdfjsLib.getDocument({ url: fileUrl, withCredentials: false }).promise;
+        
+        document.getElementById('pdf-pagination').style.display = 'flex';
+        document.getElementById('zoom-controls').style.display = 'inline';
+        
+        document.getElementById('prev-page').onclick = () => { if (pageNum > 1) { pageNum--; renderPage(pageNum); } };
+        document.getElementById('next-page').onclick = () => { if (pageNum < pdfDoc.numPages) { pageNum++; renderPage(pageNum); } };
+        document.getElementById('zoom-in').onclick = () => { scale *= 1.2; renderPage(pageNum); };
+        document.getElementById('zoom-out').onclick = () => { scale = Math.max(0.5, scale / 1.2); renderPage(pageNum); };
+        document.getElementById('zoom-reset').onclick = () => { scale = 1.5; renderPage(pageNum); };
+
+        await renderPage(pageNum);
+        showContainer('pdf');
+      } catch (error) {
+        console.error('PDF load error:', error);
+        showError('Failed to load PDF: ' + error.message);
+      }
+    }
+
+    function showUnsupported() {
+      document.getElementById('unsupported-message').textContent = 
+        `Cannot preview ${fileName.split('.').pop().toUpperCase()} files in the browser. Download to view locally.`;
+      document.getElementById('unsupported-download').onclick = () => downloadFile(fileUrl, fileName);
+      showContainer('unsupported');
+    }
+
+    // Main loader
+    async function loadFile() {
+      const fileType = detectFileType(fileName, contentType);
+      console.log('Detected file type:', fileType, 'for', fileName);
+
+      try {
+        switch (fileType) {
+          case 'image':
+            await loadImage();
+            break;
+          case 'video':
+            await loadVideo();
+            break;
+          case 'audio':
+            await loadAudio();
+            break;
+          case 'pdf':
+            await loadPDF();
+            break;
+          case 'text':
+            await loadText();
+            break;
+          case 'office':
+            await loadOffice();
+            break;
+          case 'msg':
+            await loadMSG();
+            break;
+          default:
+            showUnsupported();
+        }
+      } catch (error) {
+        console.error('Load error:', error);
+        showError(error.message || 'Failed to load file');
+      }
+    }
+
+    loadFile();
+  </script>
+</body>
+</html>

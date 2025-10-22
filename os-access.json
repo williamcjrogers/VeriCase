@@ -1,0 +1,21 @@
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Effect": "Allow",
+      "Principal": {
+        "AWS": "arn:aws:iam::526015377510:role/eksctl-vericase-cluster-addon-iamserviceaccou-Role1-6eljaj0dhkWZ"
+      },
+      "Action": "es:*",
+      "Resource": "arn:aws:es:eu-west-2:526015377510:domain/vericase-opensearch/*"
+    },
+    {
+      "Effect": "Allow",
+      "Principal": {
+        "AWS": "arn:aws:iam::526015377510:role/eksctl-vericase-cluster-addon-iamserviceaccou-Role1-5qy1HIekcCfO"
+      },
+      "Action": "es:*",
+      "Resource": "arn:aws:es:eu-west-2:526015377510:domain/vericase-opensearch/*"
+    }
+  ]
+}

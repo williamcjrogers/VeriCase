@@ -11,7 +11,7 @@ from fastapi.responses import RedirectResponse
 from sqlalchemy.orm import Session, joinedload
 from .config import settings
 from .db import Base, engine
-from .models import Document, DocStatus, User, ShareLink
+from .models import Document, DocStatus, User, ShareLink, Folder
 from .storage import ensure_bucket, presign_put, presign_get, multipart_start, presign_part, multipart_complete, s3, get_object, put_object, delete_object
 from .search import ensure_index, search as os_search, delete_document as os_delete
 from .tasks import celery_app
@@ -98,6 +98,8 @@ def complete_upload(body: dict = Body(...), db: Session = Depends(get_db), user:
     from .models import Document, DocStatus
     key=body.get("key"); filename=body.get("filename") or "file"; ct=body.get("content_type") or "application/octet-stream"
     size=int(body.get("size") or 0); title=body.get("title"); path=body.get("path")
+    # Set empty paths to None so they're treated consistently
+    if path == "": path = None
     doc=Document(filename=filename, path=path, content_type=ct, size=size, bucket=settings.MINIO_BUCKET, s3_key=key, title=title, status=DocStatus.NEW, owner_user_id=user.id)
     db.add(doc); db.commit(); celery_app.send_task("worker_app.worker.ocr_and_index", args=[str(doc.id)])
     return {"id": str(doc.id), "status":"QUEUED"}
@@ -114,6 +116,8 @@ def multipart_complete_ep(body: dict = Body(...), db: Session = Depends(get_db),
     key=body["key"]; upload_id=body["uploadId"]; parts=body["parts"]; multipart_complete(key, upload_id, parts)
     filename=body.get("filename") or "file"; ct=body.get("content_type") or "application/octet-stream"
     size=int(body.get("size") or 0); title=body.get("title"); path=body.get("path")
+    # Set empty paths to None so they're treated consistently
+    if path == "": path = None
     doc=Document(filename=filename, path=path, content_type=ct, size=size, bucket=settings.MINIO_BUCKET, s3_key=key, title=title, status=DocStatus.NEW, owner_user_id=user.id)
     db.add(doc); db.commit(); celery_app.send_task("worker_app.worker.ocr_and_index", args=[str(doc.id)])
     return {"id": str(doc.id), "status":"QUEUED"}
@@ -122,6 +126,7 @@ def multipart_complete_ep(body: dict = Body(...), db: Session = Depends(get_db),
 @app.get("/documents", response_model=DocumentListResponse)
 def list_documents(
     path_prefix: Optional[str] = Query(default=None),
+    exact_folder: bool = Query(default=False),
     status: Optional[str] = Query(default=None),
     limit: int = Query(default=50, ge=1, le=200),
     offset: int = Query(default=0, ge=0),
@@ -129,11 +134,22 @@ def list_documents(
     user: User = Depends(current_user),
 ):
     query = db.query(Document).filter(Document.owner_user_id == user.id)
-    if path_prefix:
-        safe_path = path_prefix.strip().strip("/")
-        if safe_path:
-            like_pattern = f"{safe_path}%"
-            query = query.filter(Document.path.like(like_pattern))
+    if path_prefix is not None:
+        if path_prefix == "":
+            # Empty string means root - show documents with no path or empty path
+            query = query.filter((Document.path == None) | (Document.path == ""))
+        else:
+            safe_path = path_prefix.strip().strip("/")
+            if safe_path:
+                if exact_folder:
+                    # Match exact folder only, not subfolders
+                    query = query.filter(Document.path == safe_path)
+                else:
+                    # Match folder and all subfolders
+                    like_pattern = f"{safe_path}/%"
+                    query = query.filter(
+                        (Document.path == safe_path) | (Document.path.like(like_pattern))
+                    )
     if status:
         try:
             status_enum = DocStatus(status.upper())
@@ -193,6 +209,37 @@ def get_signed_url(doc_id: str, db: Session = Depends(get_db), user: User = Depe
         raise HTTPException(404,"not found")
     return {"url": presign_get(doc.s3_key, 300), "filename": doc.filename, "content_type": doc.content_type}
 
+
+@app.patch("/documents/{doc_id}")
+def update_document(doc_id: str, body: dict = Body(...), db: Session = Depends(get_db), user: User = Depends(current_user)):
+    """Update document metadata (path, title, etc.)"""
+    doc = db.get(Document, _parse_uuid(doc_id))
+    if not doc or doc.owner_user_id != user.id:
+        raise HTTPException(404, "not found")
+    
+    if "path" in body:
+        new_path = body["path"]
+        if new_path == "":
+            new_path = None
+        doc.path = new_path
+    
+    if "title" in body:
+        doc.title = body["title"]
+    
+    if "filename" in body:
+        doc.filename = body["filename"]
+    
+    doc.updated_at = datetime.utcnow()
+    db.commit()
+    db.refresh(doc)
+    
+    return {
+        "id": str(doc.id),
+        "filename": doc.filename,
+        "path": doc.path,
+        "title": doc.title,
+        "updated_at": doc.updated_at
+    }
 
 @app.delete("/documents/{doc_id}", status_code=204)
 def delete_document_endpoint(doc_id: str, db: Session = Depends(get_db), user: User = Depends(current_user)):
@@ -276,3 +323,98 @@ def resolve_share(token: str, password: Optional[str] = Query(default=None), wat
             raise HTTPException(500,"unable to generate watermark") from exc
     url=presign_get(document.s3_key, 300)
     return {"url": url, "filename": document.filename, "content_type": document.content_type}
+
+# Folder Management
+from .folders import validate_folder_path, get_parent_path, get_folder_name, create_folder_record, rename_folder_and_docs, delete_folder_and_docs
+
+class FolderInfo(BaseModel):
+    path: str
+    name: str
+    parent_path: Optional[str] = None
+    is_empty: bool
+    document_count: int
+    created_at: Optional[datetime] = None
+
+class FolderListResponse(BaseModel):
+    folders: List[FolderInfo]
+
+@app.post("/folders")
+def create_folder(body: dict = Body(...), db: Session = Depends(get_db), user: User = Depends(current_user)):
+    """Create a new empty folder"""
+    path = body.get("path", "").strip()
+    path = validate_folder_path(path)
+    folder = create_folder_record(db, path, user.id)
+    db.commit()
+    db.refresh(folder)
+    return {"path": folder.path, "name": folder.name, "parent_path": folder.parent_path, "created": True, "created_at": folder.created_at}
+
+@app.patch("/folders")
+def rename_folder(body: dict = Body(...), db: Session = Depends(get_db), user: User = Depends(current_user)):
+    """Rename a folder and update all document paths"""
+    old_path = body.get("old_path", "").strip()
+    new_path = body.get("new_path", "").strip()
+    
+    # Support both new_name (for simple rename) and new_path (for full path change)
+    if not old_path:
+        raise HTTPException(400, "old_path is required")
+    
+    if not new_path:
+        new_name = body.get("new_name", "").strip()
+        if not new_name:
+            raise HTTPException(400, "either new_path or new_name is required")
+        parent = get_parent_path(old_path)
+        new_path = f"{parent}/{new_name}" if parent else new_name
+    
+    old_path = validate_folder_path(old_path)
+    new_path = validate_folder_path(new_path)
+    
+    try:
+        documents_updated = rename_folder_and_docs(db, user.id, old_path, new_path.split('/')[-1])
+        db.commit()
+        return {"old_path": old_path, "new_path": new_path, "documents_updated": documents_updated, "success": True}
+    except Exception as e:
+        db.rollback()
+        logger.exception("Failed to rename folder")
+        raise HTTPException(500, f"failed to rename folder: {str(e)}")
+
+@app.delete("/folders")
+def delete_folder(body: dict = Body(...), db: Session = Depends(get_db), user: User = Depends(current_user)):
+    """Delete a folder and optionally its contents"""
+    path = body.get("path", "").strip()
+    recursive = body.get("recursive", False)
+    if not path: raise HTTPException(400, "path is required")
+    path = validate_folder_path(path)
+    try:
+        documents_deleted, files_removed = delete_folder_and_docs(db, user.id, path, recursive, delete_object, os_delete, logger)
+        db.commit()
+        return {"deleted": True, "path": path, "documents_deleted": documents_deleted, "files_removed": files_removed}
+    except Exception as e:
+        db.rollback()
+        logger.exception("Failed to delete folder")
+        raise HTTPException(500, f"failed to delete folder: {str(e)}")
+
+@app.get("/folders", response_model=FolderListResponse)
+def list_folders(db: Session = Depends(get_db), user: User = Depends(current_user)):
+    """List all folders with metadata including document counts"""
+    doc_paths = db.query(Document.path).filter(Document.owner_user_id == user.id, Document.path.isnot(None)).distinct().all()
+    empty_folders = db.query(Folder).filter(Folder.owner_user_id == user.id).all()
+    folder_map = {}
+    for (path,) in doc_paths:
+        if not path: continue
+        parts = path.split("/")
+        for i in range(len(parts)):
+            folder_path = "/".join(parts[:i+1])
+            if folder_path not in folder_map:
+                folder_map[folder_path] = {"path": folder_path, "name": get_folder_name(folder_path), "parent_path": get_parent_path(folder_path), "document_count": 0, "is_empty": False, "created_at": None}
+    for (path,) in doc_paths:
+        if path and path in folder_map: folder_map[path]["document_count"] += 1
+    for folder in empty_folders:
+        if folder.path not in folder_map:
+            folder_map[folder.path] = {"path": folder.path, "name": folder.name, "parent_path": folder.parent_path, "document_count": 0, "is_empty": True, "created_at": folder.created_at}
+        else:
+            folder_map[folder.path]["created_at"] = folder.created_at
+    for folder_path in folder_map:
+        if folder_map[folder_path]["document_count"] == 0: folder_map[folder_path]["is_empty"] = True
+    folders = [FolderInfo(**f) for f in folder_map.values()]
+    folders.sort(key=lambda f: f.path)
+    return FolderListResponse(folders=folders)

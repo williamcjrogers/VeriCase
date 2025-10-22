@@ -7,13 +7,39 @@ from opensearchpy import OpenSearch, RequestsHttpConnection
 import requests, subprocess, pytesseract
 from PIL import Image
 from .config import settings
+
 celery_app = Celery("vericase-docs", broker=settings.REDIS_URL, backend=settings.REDIS_URL)
-s3 = boto3.client("s3", endpoint_url=settings.MINIO_ENDPOINT,
-    aws_access_key_id=settings.MINIO_ACCESS_KEY, aws_secret_access_key=settings.MINIO_SECRET_KEY,
-    config=Config(signature_version="s3v4"), region_name="us-east-1")
+
+# Initialize S3 client based on AWS mode
+use_aws = settings.USE_AWS_SERVICES or not settings.MINIO_ENDPOINT
+if use_aws:
+    # AWS S3 mode: use IRSA for credentials (no endpoint_url, no explicit keys)
+    s3 = boto3.client(
+        "s3",
+        config=Config(signature_version="s3v4"),
+        region_name=settings.AWS_REGION,
+    )
+else:
+    # MinIO mode: use explicit endpoint and credentials
+    s3 = boto3.client(
+        "s3",
+        endpoint_url=settings.MINIO_ENDPOINT,
+        aws_access_key_id=settings.MINIO_ACCESS_KEY,
+        aws_secret_access_key=settings.MINIO_SECRET_KEY,
+        config=Config(signature_version="s3v4"),
+        region_name=settings.AWS_REGION,
+    )
+
 engine = create_engine(settings.DATABASE_URL, pool_pre_ping=True)
-os_client = OpenSearch(hosts=[{"host": settings.OPENSEARCH_HOST, "port": settings.OPENSEARCH_PORT}],
-                       http_compress=True, use_ssl=False, verify_certs=False, connection_class=RequestsHttpConnection)
+
+# Initialize OpenSearch client with TLS support
+os_client = OpenSearch(
+    hosts=[{"host": settings.OPENSEARCH_HOST, "port": settings.OPENSEARCH_PORT}],
+    http_compress=True,
+    use_ssl=settings.OPENSEARCH_USE_SSL,
+    verify_certs=settings.OPENSEARCH_VERIFY_CERTS,
+    connection_class=RequestsHttpConnection
+)
 def _update_status(doc_id: str, status: str, excerpt: str|None=None):
     with engine.begin() as conn:
         if excerpt is not None:

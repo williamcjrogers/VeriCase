@@ -1,0 +1,49 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: vericase-config
+  namespace: default
+data:
+  # AWS Mode
+  USE_AWS_SERVICES: "true"
+  AWS_REGION: "eu-west-2"
+  
+  # S3 Configuration (empty endpoint to use IRSA)
+  MINIO_ENDPOINT: ""
+  MINIO_ACCESS_KEY: ""
+  MINIO_SECRET_KEY: ""
+  MINIO_BUCKET: "vericase-docs-prod-526015377510"
+  
+  # RDS PostgreSQL Database
+  POSTGRES_HOST: "database-1.cv8uw0uuqr7f.eu-west-2.rds.amazonaws.com"
+  POSTGRES_PORT: "5432"
+  POSTGRES_DB: "vericase"
+  # Note: Password should be fetched from Secrets Manager secret:
+  # arn:aws:secretsmanager:eu-west-2:526015377510:secret:rds-db-5818fc76-6f0c-4d02-8aa4-df3d01776ed3
+  # You'll need to construct DATABASE_URL as: postgresql+psycopg2://username:password@host:5432/vericase
+  
+  # Redis (ElastiCache)
+  REDIS_URL: "redis://clustercfg.vericase-redis.dbbgbx.euw2.cache.amazonaws.com:6379/0"
+  
+  # OpenSearch with TLS
+  OPENSEARCH_HOST: "vpc-vericase-opensearch-sl2a3zd5dmrbt64bssyocnrofu.eu-west-2.es.amazonaws.com"
+  OPENSEARCH_PORT: "443"
+  OPENSEARCH_USE_SSL: "true"
+  OPENSEARCH_VERIFY_CERTS: "true"
+  OPENSEARCH_INDEX: "documents"
+  
+  # Celery
+  CELERY_QUEUE: "ocr"
+  
+  # Tika (assuming you have this running in the cluster)
+  TIKA_URL: "http://tika:9998"
+  
+  # API Settings
+  API_HOST: "0.0.0.0"
+  API_PORT: "8000"
+  CORS_ORIGINS: "*"
+  
+  # JWT Settings (replace with your actual secret)
+  JWT_SECRET: "change-this-to-a-secure-random-string"
+  JWT_ISSUER: "vericase-docs"
+  JWT_EXPIRE_MIN: "7200"

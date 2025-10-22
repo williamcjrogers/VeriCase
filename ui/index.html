@@ -176,6 +176,36 @@
       scrollbar-width: thin;
     }
 
+    .tree-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0.2rem 1.2rem 0.8rem;
+      color: var(--muted);
+      font-size: 0.8rem;
+      font-weight: 600;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+
+    .tree-header button {
+      border: none;
+      background: rgba(148, 163, 184, 0.12);
+      color: var(--muted-strong);
+      border-radius: 50%;
+      width: 28px;
+      height: 28px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      font-size: 0.85rem;
+      line-height: 1;
+    }
+
+    .tree-header button:hover {
+      background: rgba(37, 99, 235, 0.15);
+      color: var(--accent-strong);
+    }
+
     .tree-item {
       padding: 0.45rem 0.55rem;
       border-radius: var(--radius-sm);
@@ -345,6 +375,37 @@
       display: none;
     }
 
+    .upload-status {
+      background: rgba(255, 255, 255, 0.92);
+      border: 1px solid rgba(148, 163, 184, 0.3);
+      border-radius: var(--radius-sm);
+      padding: 0.75rem 0.9rem;
+      margin-top: 0.65rem;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .upload-status strong {
+      display: block;
+      font-weight: 600;
+      margin-bottom: 0.35rem;
+      color: var(--muted-strong);
+      word-break: break-word;
+    }
+
+    .upload-status span {
+      font-size: 0.85rem;
+      color: var(--muted);
+      display: block;
+    }
+
+    .upload-status span.success {
+      color: var(--success);
+    }
+
+    .upload-status span.error {
+      color: var(--danger);
+    }
+
     .auth-overlay {
       position: fixed;
       inset: 0;
@@ -391,6 +452,318 @@
     .hidden { display: none !important; }
 
     body.authed .auth-overlay { display: none; }
+
+    /* Context Menu */
+    .context-menu {
+      position: fixed;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      box-shadow: 0 4px 12px rgba(15, 23, 42, 0.15);
+      padding: 0.5rem 0;
+      min-width: 180px;
+      z-index: 1000;
+    }
+
+    .context-menu-item {
+      padding: 0.6rem 1rem;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+      font-size: 0.9rem;
+      transition: all 0.15s ease;
+    }
+
+    .context-menu-item:hover {
+      background: var(--accent-soft);
+      color: var(--accent-strong);
+    }
+
+    .context-menu-divider {
+      height: 1px;
+      background: var(--border);
+      margin: 0.5rem 0;
+    }
+
+    /* Modal base styles */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(15, 23, 42, 0.45);
+      backdrop-filter: blur(8px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 100;
+    }
+
+    .modal-content {
+      background: rgba(255, 255, 255, 0.96);
+      border-radius: var(--radius-lg);
+      width: min(460px, 90%);
+      padding: 1.9rem;
+      box-shadow: var(--shadow-md);
+    }
+
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1.5rem;
+    }
+
+    .modal-header h2 {
+      margin: 0;
+      font-size: 1.3rem;
+    }
+
+    .modal-close {
+      border: none;
+      background: transparent;
+      font-size: 1.6rem;
+      cursor: pointer;
+      color: var(--muted);
+      line-height: 1;
+      padding: 0;
+      width: 32px;
+      height: 32px;
+    }
+
+    .modal-close:hover {
+      color: var(--text);
+    }
+
+    .modal-body {
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+
+    .modal-actions {
+      display: flex;
+      gap: 0.75rem;
+      margin-top: 1.5rem;
+    }
+
+    .modal-actions button {
+      flex: 1;
+      padding: 0.7rem 1.2rem;
+      border-radius: var(--radius-sm);
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .btn-primary {
+      background: var(--accent);
+      color: white;
+      border: none;
+      box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
+    }
+
+    .btn-primary:hover {
+      background: var(--accent-strong);
+    }
+
+    .btn-secondary {
+      background: white;
+      color: var(--text);
+      border: 1px solid var(--border);
+    }
+
+    .btn-secondary:hover {
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+
+    .btn-danger {
+      background: var(--danger);
+      color: white;
+      border: none;
+    }
+
+    .btn-danger:hover {
+      background: #dc2626;
+    }
+
+    label {
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: var(--muted-strong);
+    }
+
+    .checkbox-group {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .checkbox-group input[type="checkbox"] {
+      width: auto;
+      cursor: pointer;
+    }
+
+    .tree-item.empty-folder {
+      opacity: 0.7;
+    }
+
+    .tree-item.empty-folder .icon {
+      opacity: 0.6;
+    }
+
+    /* Skeleton Loading */
+    .skeleton {
+      background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+      background-size: 200% 100%;
+      animation: loading 1.5s ease-in-out infinite;
+      border-radius: 4px;
+    }
+
+    @keyframes loading {
+      0% { background-position: 200% 0; }
+      100% { background-position: -200% 0; }
+    }
+
+    .loading-row {
+      display: flex;
+      gap: 1rem;
+      padding: 0.8rem 1rem;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .loading-row .skeleton {
+      height: 20px;
+    }
+
+    /* File Type Icons */
+    .file-icon {
+      font-size: 1.2rem;
+      margin-right: 0.5rem;
+    }
+
+    /* Drag & Drop Styles */
+    .dragging {
+      opacity: 0.5;
+      cursor: grabbing;
+    }
+
+    .drop-target {
+      background: rgba(37, 99, 235, 0.15);
+      border: 2px dashed var(--accent);
+    }
+
+    .tree-item[draggable="true"] {
+      cursor: grab;
+    }
+
+    tbody tr[draggable="true"] {
+      cursor: grab;
+    }
+
+    tbody tr.dragging {
+      opacity: 0.5;
+    }
+
+    /* Selection Count Badge */
+    .selection-badge {
+      position: fixed;
+      bottom: 2rem;
+      right: 2rem;
+      background: var(--accent);
+      color: white;
+      padding: 0.75rem 1.25rem;
+      border-radius: var(--radius-lg);
+      box-shadow: 0 8px 24px rgba(37, 99, 235, 0.4);
+      font-weight: 600;
+      font-size: 0.9rem;
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      z-index: 50;
+      animation: slideInUp 0.3s ease;
+    }
+
+    @keyframes slideInUp {
+      from {
+        transform: translateY(100px);
+        opacity: 0;
+      }
+      to {
+        transform: translateY(0);
+        opacity: 1;
+      }
+    }
+
+    .selection-badge button {
+      background: rgba(255, 255, 255, 0.2);
+      border: none;
+      color: white;
+      padding: 0.35rem 0.75rem;
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+      font-weight: 600;
+      font-size: 0.85rem;
+      transition: all 0.2s ease;
+    }
+
+    .selection-badge button:hover {
+      background: rgba(255, 255, 255, 0.3);
+    }
+
+    /* Enhanced Animations */
+    .tree-item, tbody tr {
+      transition: all 0.15s ease;
+    }
+
+    tbody tr:hover {
+      transform: translateX(2px);
+    }
+
+    /* Loading Spinner */
+    .spinner {
+      display: inline-block;
+      width: 16px;
+      height: 16px;
+      border: 2px solid rgba(0, 0, 0, 0.1);
+      border-top-color: var(--accent);
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    /* Toast Notifications */
+    .toast {
+      position: fixed;
+      top: 5rem;
+      right: 2rem;
+      background: var(--surface);
+      color: var(--text);
+      padding: 1rem 1.25rem;
+      border-radius: var(--radius-sm);
+      box-shadow: 0 8px 24px rgba(15, 23, 42, 0.2);
+      border-left: 4px solid var(--accent);
+      z-index: 1000;
+      animation: slideInRight 0.3s ease;
+      max-width: 400px;
+    }
+
+    @keyframes slideInRight {
+      from {
+        transform: translateX(400px);
+        opacity: 0;
+      }
+      to {
+        transform: translateX(0);
+        opacity: 1;
+      }
+    }
+
+    .toast.success { border-left-color: var(--success); }
+    .toast.error { border-left-color: var(--danger); }
 
     @media (max-width: 992px) {
       .shell {
@@ -466,10 +839,15 @@
         <button>🗑 Trash</button>
       </div>
 
-      <div class="nav-section">Folders</div>
-      <div class="tree" id="path-tree">
-        <!-- folders injected here -->
+      <div class="nav-section" style="padding-bottom:0;">Folders</div>
+      <div class="tree-header">
+        <span>Your Library</span>
+        <div style="display:flex; gap:0.3rem;">
+          <button id="new-folder-btn" title="New folder">+</button>
+          <button id="tree-refresh" title="Refresh folders">⟳</button>
+        </div>
       </div>
+      <div class="tree" id="path-tree"></div>
     </aside>
 
     <main>
@@ -529,7 +907,7 @@
       <label for="path" style="font-size:0.75rem; font-weight:600; color:var(--muted); text-transform:uppercase;">Destination (optional)</label>
       <input type="text" id="path" placeholder="e.g., projects/acme/contracts">
       <div id="file-drop-area" style="border:2px dashed rgba(148,163,184,0.55); border-radius:var(--radius-lg); padding:2rem; text-align:center; cursor:pointer; background:rgba(248,250,252,0.8); transition:all 0.2s ease;">
-        <input type="file" id="file" style="display:none;">
+        <input type="file" id="file" multiple style="display:none;">
         <p style="margin:0; color:var(--muted); font-weight:500;">Click to browse or drag and drop</p>
         <p id="file-name" style="margin-top:0.6rem; font-weight:600;"></p>
       </div>
@@ -546,9 +924,109 @@
     <div id="results" style="flex:1; overflow-y:auto; padding:1.2rem;"></div>
   </div>
 
+  <!-- New Folder Modal -->
+  <div id="new-folder-modal" class="modal-overlay hidden">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2>Create New Folder</h2>
+        <button class="modal-close" id="new-folder-close">&times;</button>
+      </div>
+      <div class="modal-body">
+        <label for="new-folder-name">Folder Name</label>
+        <input type="text" id="new-folder-name" placeholder="e.g., Projects or Legal/Contracts">
+        <p style="color: var(--muted); font-size: 0.85rem; margin: 0.5rem 0 0;">
+          Use / to create nested folders (e.g., "Projects/2024/Q1")
+        </p>
+      </div>
+      <div class="modal-actions">
+        <button class="btn-secondary" id="new-folder-cancel">Cancel</button>
+        <button class="btn-primary" id="new-folder-create">Create Folder</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Rename Folder Modal -->
+  <div id="rename-folder-modal" class="modal-overlay hidden">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2>Rename Folder</h2>
+        <button class="modal-close" id="rename-folder-close">&times;</button>
+      </div>
+      <div class="modal-body">
+        <label for="rename-folder-path">Current Path</label>
+        <input type="text" id="rename-folder-path" readonly style="background: var(--subsurface);">
+        <label for="rename-folder-newname" style="margin-top: 1rem;">New Name</label>
+        <input type="text" id="rename-folder-newname" placeholder="New folder name">
+        <p style="color: var(--muted); font-size: 0.85rem; margin: 0.5rem 0 0;">
+          All documents in this folder will be moved to the new path.
+        </p>
+      </div>
+      <div class="modal-actions">
+        <button class="btn-secondary" id="rename-folder-cancel">Cancel</button>
+        <button class="btn-primary" id="rename-folder-save">Rename</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Delete Folder Modal -->
+  <div id="delete-folder-modal" class="modal-overlay hidden">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2>Delete Folder</h2>
+        <button class="modal-close" id="delete-folder-close">&times;</button>
+      </div>
+      <div class="modal-body">
+        <label for="delete-folder-path">Folder Path</label>
+        <input type="text" id="delete-folder-path" readonly style="background: var(--subsurface);">
+        <div class="checkbox-group" style="margin-top: 1rem;">
+          <input type="checkbox" id="delete-folder-recursive">
+          <label for="delete-folder-recursive" style="font-weight: 500; cursor: pointer;">
+            Delete all documents in this folder
+          </label>
+        </div>
+        <p style="color: var(--danger); font-size: 0.85rem; margin: 0.75rem 0 0;">
+          ⚠️ This action cannot be undone. If recursive is checked, all documents and subfolders will be permanently deleted.
+        </p>
+      </div>
+      <div class="modal-actions">
+        <button class="btn-secondary" id="delete-folder-cancel">Cancel</button>
+        <button class="btn-danger" id="delete-folder-confirm">Delete</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Context Menu -->
+  <div id="context-menu" class="context-menu hidden">
+    <div class="context-menu-item" id="ctx-new-folder">
+      <span>📁</span> New Folder
+    </div>
+    <div class="context-menu-item" id="ctx-rename-folder">
+      <span>✏️</span> Rename
+    </div>
+    <div class="context-menu-divider"></div>
+    <div class="context-menu-item" id="ctx-delete-folder" style="color: var(--danger);">
+      <span>🗑</span> Delete
+    </div>
+  </div>
+
+  <!-- File Preview Modal -->
+  <div id="preview-modal" class="modal-overlay hidden" style="z-index: 200;">
+    <div style="position: relative; width: 95vw; height: 95vh; max-width: 1400px; background: var(--bg); border-radius: var(--radius-lg); overflow: hidden; box-shadow: 0 20px 60px rgba(0,0,0,0.5);">
+      <div style="position: absolute; top: 12px; right: 12px; z-index: 10;">
+        <button id="preview-fullscreen" style="background: rgba(45,45,45,0.9); border: 1px solid var(--border); color: white; padding: 8px 12px; border-radius: 6px; cursor: pointer; margin-right: 8px;" title="Open in new tab">
+          ⛶ Full Screen
+        </button>
+        <button id="preview-close" style="background: rgba(45,45,45,0.9); border: 1px solid var(--border); color: white; padding: 8px 12px; border-radius: 6px; cursor: pointer;" title="Close preview">
+          ✕ Close
+        </button>
+      </div>
+      <iframe id="preview-frame" style="width: 100%; height: 100%; border: none;"></iframe>
+    </div>
+  </div>
+
   <script>
     const appRoot = document.body;
-    const base = window.location.origin.replace(/\\/$/, '').replace('/ui', '');
+    const base = window.location.origin.replace(/\/$/, '');
 
     const emailInput = document.getElementById('email');
     const pwdInput = document.getElementById('pwd');
@@ -561,6 +1039,7 @@
     const sessionEmail = document.getElementById('session-email');
     const signoutBtn = document.getElementById('signout');
     const treeContainer = document.getElementById('path-tree');
+    const treeRefresh = document.getElementById('tree-refresh');
     const breadcrumbsEl = document.getElementById('breadcrumbs');
     const folderTitleEl = document.getElementById('folder-title');
     const libraryStatusEl = document.getElementById('library-status');
@@ -701,6 +1180,34 @@
         setActivePath(node.path);
         loadDocuments(true);
       });
+
+      // Drag & Drop for folders
+      item.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        e.dataTransfer.dropEffect = 'move';
+        item.classList.add('drop-target');
+      });
+
+      item.addEventListener('dragleave', () => {
+        item.classList.remove('drop-target');
+      });
+
+      item.addEventListener('drop', async (e) => {
+        e.preventDefault();
+        item.classList.remove('drop-target');
+        const targetPath = node.path;
+        
+        try {
+          const docIds = JSON.parse(e.dataTransfer.getData('text/plain'));
+          if (docIds && docIds.length) {
+            await moveDocumentsToFolder(docIds, targetPath);
+          }
+        } catch (err) {
+          console.error('Drop failed:', err);
+          showToast('Failed to move documents', 'error');
+        }
+      });
+
       wrapper.appendChild(item);
 
       if (children.length) {
@@ -714,6 +1221,33 @@
       }
 
       return wrapper;
+    }
+
+    // Move documents to folder
+    async function moveDocumentsToFolder(docIds, targetPath) {
+      if (!docIds || docIds.length === 0) return;
+      
+      try {
+        const count = docIds.length;
+        showToast(`Moving ${count} document${count > 1 ? 's' : ''}...`, 'success');
+        
+        // Move each document
+        for (const docId of docIds) {
+          const doc = visibleDocs.find(d => d.id === docId);
+          if (!doc) continue;
+          
+          // Update document path via API
+          await api(`/documents/${docId}`, 'PATCH', { path: targetPath });
+        }
+        
+        showToast(`Moved ${count} document${count > 1 ? 's' : ''} to ${targetPath || 'root'}`, 'success');
+        selectedDocs.clear();
+        updateSelectionBadge();
+        await loadPaths();
+        await loadDocuments(true);
+      } catch (err) {
+        showToast(`Failed to move documents: ${err.message}`, 'error');
+      }
     }
 
     function renderPaths(paths) {
@@ -761,6 +1295,17 @@
       if (treeContainer) {
         treeContainer.querySelectorAll('.tree-item').forEach(item => {
           item.classList.toggle('active', item.dataset.path === currentPath);
+          const sibling = item.nextElementSibling;
+          const caretEl = item.querySelector('.caret');
+          if (sibling && sibling.children && sibling.children.length) {
+            if (expandedPaths.has(item.dataset.path)) {
+              sibling.style.display = 'block';
+              if (caretEl && !caretEl.classList.contains('invisible')) caretEl.textContent = '▾';
+            } else {
+              sibling.style.display = 'none';
+              if (caretEl && !caretEl.classList.contains('invisible')) caretEl.textContent = '▸';
+            }
+          }
         });
       }
     }
@@ -772,13 +1317,41 @@
       if (toolbarDelete) toolbarDelete.disabled = !hasSelection;
     }
 
+    // File type icons helper
+    function getFileIcon(filename) {
+      const ext = filename.split('.').pop().toLowerCase();
+      const icons = {
+        'pdf': '📄', 'doc': '📝', 'docx': '📝', 'txt': '📝',
+        'xls': '📊', 'xlsx': '📊', 'csv': '📊',
+        'jpg': '🖼️', 'jpeg': '🖼️', 'png': '🖼️', 'gif': '🖼️',
+        'mp4': '🎬', 'mov': '🎬', 'avi': '🎬',
+        'zip': '📦', 'rar': '📦', '7z': '📦'
+      };
+      return icons[ext] || '📎';
+    }
+
+    // Toast notification
+    function showToast(message, type = 'success') {
+      const toast = document.createElement('div');
+      toast.className = `toast ${type}`;
+      toast.textContent = message;
+      document.body.appendChild(toast);
+      setTimeout(() => toast.remove(), 3000);
+    }
+
+    // Multi-select with Ctrl/Shift support
+    let lastSelectedIndex = null;
+    let visibleDocs = [];
+
     function renderDocumentRows(items) {
       if (!docTableBody) return;
-      const currentIds = new Set((items || []).map(doc => doc.id));
+      visibleDocs = items || [];
+      const currentIds = new Set(visibleDocs.map(doc => doc.id));
       Array.from(selectedDocs).forEach(id => {
         if (!currentIds.has(id)) selectedDocs.delete(id);
       });
       updateToolbarState();
+      updateSelectionBadge();
 
       docTableBody.innerHTML = '';
       if (!items || items.length === 0) {
@@ -787,9 +1360,11 @@
       }
       docTableEmpty.style.display = 'none';
 
-      items.forEach(doc => {
+      items.forEach((doc, index) => {
         const tr = document.createElement('tr');
         tr.dataset.id = doc.id;
+        tr.dataset.index = index;
+        tr.draggable = true;
 
         const selectTd = document.createElement('td');
         const checkbox = document.createElement('input');
@@ -808,12 +1383,17 @@
             tr.classList.remove('selected');
           }
           updateToolbarState();
+          updateSelectionBadge();
         });
         selectTd.appendChild(checkbox);
         tr.appendChild(selectTd);
 
         const nameTd = document.createElement('td');
-        nameTd.textContent = doc.filename;
+        const icon = document.createElement('span');
+        icon.className = 'file-icon';
+        icon.textContent = getFileIcon(doc.filename);
+        nameTd.appendChild(icon);
+        nameTd.appendChild(document.createTextNode(doc.filename));
         tr.appendChild(nameTd);
 
         const statusTd = document.createElement('td');
@@ -841,19 +1421,70 @@
         `;
         tr.appendChild(actionsTd);
 
+        // Multi-select with Ctrl/Shift
         tr.addEventListener('click', (event) => {
           if (event.target.tagName === 'BUTTON' || event.target.type === 'checkbox') return;
-          const isSelected = selectedDocs.has(doc.id);
-          if (isSelected) {
-            selectedDocs.delete(doc.id);
-            if (checkbox.checked) checkbox.checked = false;
-            tr.classList.remove('selected');
+          
+          if (event.ctrlKey || event.metaKey) {
+            // Ctrl+Click: Toggle selection
+            if (selectedDocs.has(doc.id)) {
+              selectedDocs.delete(doc.id);
+              checkbox.checked = false;
+              tr.classList.remove('selected');
+            } else {
+              selectedDocs.add(doc.id);
+              checkbox.checked = true;
+              tr.classList.add('selected');
+            }
+            lastSelectedIndex = index;
+          } else if (event.shiftKey && lastSelectedIndex !== null) {
+            // Shift+Click: Range selection
+            const start = Math.min(lastSelectedIndex, index);
+            const end = Math.max(lastSelectedIndex, index);
+            for (let i = start; i <= end; i++) {
+              const docId = visibleDocs[i].id;
+              selectedDocs.add(docId);
+              const row = docTableBody.querySelector(`tr[data-index="${i}"]`);
+              if (row) {
+                row.classList.add('selected');
+                const cb = row.querySelector('.row-select');
+                if (cb) cb.checked = true;
+              }
+            }
           } else {
+            // Regular click: Single selection
+            selectedDocs.clear();
+            document.querySelectorAll('tr.selected').forEach(r => {
+              r.classList.remove('selected');
+              const cb = r.querySelector('.row-select');
+              if (cb) cb.checked = false;
+            });
             selectedDocs.add(doc.id);
-            if (!checkbox.checked) checkbox.checked = true;
+            checkbox.checked = true;
             tr.classList.add('selected');
+            lastSelectedIndex = index;
           }
           updateToolbarState();
+          updateSelectionBadge();
+        });
+
+        tr.addEventListener('dblclick', () => handlePreview(doc.id));
+
+        // Drag & Drop
+        tr.addEventListener('dragstart', (e) => {
+          if (!selectedDocs.has(doc.id)) {
+            selectedDocs.clear();
+            selectedDocs.add(doc.id);
+            updateToolbarState();
+            updateSelectionBadge();
+          }
+          e.dataTransfer.effectAllowed = 'move';
+          e.dataTransfer.setData('text/plain', JSON.stringify(Array.from(selectedDocs)));
+          tr.classList.add('dragging');
+        });
+
+        tr.addEventListener('dragend', () => {
+          tr.classList.remove('dragging');
         });
 
         docTableBody.appendChild(tr);
@@ -861,6 +1492,37 @@
 
       attachRowActions();
     }
+
+    // Selection badge
+    function updateSelectionBadge() {
+      let badge = document.getElementById('selection-badge');
+      
+      if (selectedDocs.size > 0) {
+        if (!badge) {
+          badge = document.createElement('div');
+          badge.id = 'selection-badge';
+          badge.className = 'selection-badge';
+          document.body.appendChild(badge);
+        }
+        badge.innerHTML = `
+          <span>${selectedDocs.size} selected</span>
+          <button onclick="clearSelection()">Clear</button>
+        `;
+      } else if (badge) {
+        badge.remove();
+      }
+    }
+
+    window.clearSelection = function() {
+      selectedDocs.clear();
+      document.querySelectorAll('tr.selected').forEach(tr => {
+        tr.classList.remove('selected');
+        const cb = tr.querySelector('.row-select');
+        if (cb) cb.checked = false;
+      });
+      updateToolbarState();
+      updateSelectionBadge();
+    };
 
     function showStatus(id, message, type) {
       const container = document.getElementById(id);
@@ -884,7 +1546,11 @@
 
     async function loadDocuments(reset = false) {
       if (!token || !docTableBody) return;
-      if (reset) currentPage = 0;
+      if (reset) {
+        currentPage = 0;
+        selectedDocs.clear();
+        updateToolbarState();
+      }
       if (libraryStatusEl) libraryStatusEl.textContent = 'Loading documents...';
       const params = new URLSearchParams();
       params.set('limit', pageSize);
@@ -943,6 +1609,9 @@
       currentPage = 0;
       totalDocuments = 0;
       selectedDocs.clear();
+      expandedPaths.clear();
+      expandedPaths.add('');
+      pathsCache = [];
       updateToolbarState();
       if (docTableBody) docTableBody.innerHTML = '';
       docTableEmpty.style.display = 'none';
@@ -968,9 +1637,48 @@
 
     function handlePreview(id) {
       if (!id) { alert('Select a document first.'); return; }
+      const doc = visibleDocs.find(d => d.id === id);
+      if (!doc) { alert('Document not found.'); return; }
+      
       api('/documents/' + id + '/signed_url')
-        .then(r => window.open('pdf-viewer.html?file=' + encodeURIComponent(r.url), '_blank'))
+        .then(r => {
+          const url = `file-viewer.html?file=${encodeURIComponent(r.url)}&filename=${encodeURIComponent(r.filename)}&type=${encodeURIComponent(r.content_type || '')}`;
+          openPreviewModal(url);
+        })
         .catch(err => alert(err.message));
+    }
+
+    function openPreviewModal(url) {
+      const modal = document.getElementById('preview-modal');
+      const frame = document.getElementById('preview-frame');
+      const fullscreenBtn = document.getElementById('preview-fullscreen');
+      const closeBtn = document.getElementById('preview-close');
+      
+      frame.src = url;
+      modal.classList.remove('hidden');
+      document.body.style.overflow = 'hidden';
+      
+      fullscreenBtn.onclick = () => window.open(url, '_blank');
+      closeBtn.onclick = closePreviewModal;
+    }
+
+    function closePreviewModal() {
+      const modal = document.getElementById('preview-modal');
+      const frame = document.getElementById('preview-frame');
+      
+      modal.classList.add('hidden');
+      frame.src = '';
+      document.body.style.overflow = '';
+    }
+
+    // Close preview when clicking outside - set up after DOM is ready
+    const previewModal = document.getElementById('preview-modal');
+    if (previewModal) {
+      previewModal.addEventListener('click', (e) => {
+        if (e.target.id === 'preview-modal') {
+          closePreviewModal();
+        }
+      });
     }
 
     function handleShare(id) {
@@ -1021,6 +1729,9 @@
         loadPaths();
         loadDocuments(true);
       });
+    }
+    if (treeRefresh) {
+      treeRefresh.addEventListener('click', () => loadPaths());
     }
 
     document.getElementById('saveToken').addEventListener('click', () => {
@@ -1101,54 +1812,180 @@
     }
     if (searchClose) searchClose.addEventListener('click', closeSearchDrawer);
 
-    if (searchButton) {
-      searchButton.addEventListener('click', async () => {
-        if (!token) { alert('Sign in to search.'); return; }
-        const q = searchInput.value.trim();
-        if (!q) { alert('Enter a search term.'); return; }
-        openSearchDrawer();
-        const resultsEl = document.getElementById('results');
-        if (resultsEl) resultsEl.innerHTML = '<p class="muted">Searching...</p>';
-        try {
-          const params = new URLSearchParams({ q });
-          if (currentPath) params.set('path_prefix', currentPath);
-          const res = await api('/search?' + params.toString());
-          if (!resultsEl) return;
-          resultsEl.innerHTML = `<div class="muted">${res.count} results found</div>`;
-          if (res.hits.length === 0) {
-            resultsEl.innerHTML += '<div class="muted" style="margin-top:0.75rem;">No documents matched your query.</div>';
-          }
-          res.hits.forEach(hit => {
-            const card = document.createElement('div');
-            card.style.border = '1px solid var(--border)';
-            card.style.borderRadius = '10px';
-            card.style.padding = '0.9rem';
-            card.style.marginTop = '0.85rem';
-            card.innerHTML = `
-              <strong>${hit.title || hit.filename}</strong>
-              ${hit.path ? `<div class="muted">${hit.path}</div>` : ''}
-              <div class="muted" style="margin-top:0.4rem;">${hit.snippet || 'No snippet available.'}</div>
-              <div style="margin-top:0.6rem; display:flex; gap:0.5rem;">
-                <button class="action-preview" data-id="${hit.id}">Preview</button>
-                <button class="action-share" data-id="${hit.id}">Share</button>
-              </div>
-            `;
-            resultsEl.appendChild(card);
-          });
-          attachRowActions();
-        } catch (err) {
-          if (resultsEl) resultsEl.innerHTML = `<div class="muted">Search failed: ${err.message}</div>`;
+    // Search debouncing
+    let searchDebounceTimer;
+    const performSearch = async () => {
+      if (!token) { alert('Sign in to search.'); return; }
+      const q = searchInput.value.trim();
+      if (!q) return;
+      
+      openSearchDrawer();
+      const resultsEl = document.getElementById('results');
+      if (resultsEl) resultsEl.innerHTML = '<p class="muted"><span class="spinner"></span> Searching...</p>';
+      
+      try {
+        const params = new URLSearchParams({ q });
+        if (currentPath) params.set('path_prefix', currentPath);
+        const res = await api('/search?' + params.toString());
+        if (!resultsEl) return;
+        
+        resultsEl.innerHTML = `
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem;">
+            <div class="muted">${res.count} results found</div>
+            ${res.count > 0 ? `<button class="btn-secondary btn-small" onclick="closeSearchDrawer()" style="padding:0.3rem 0.7rem;">Close</button>` : ''}
+          </div>
+        `;
+        
+        if (res.hits.length === 0) {
+          resultsEl.innerHTML += '<div class="muted" style="margin-top:0.75rem;">No documents matched your query.</div>';
         }
+        
+        res.hits.forEach(hit => {
+          const card = document.createElement('div');
+          card.style.border = '1px solid var(--border)';
+          card.style.borderRadius = '10px';
+          card.style.padding = '0.9rem';
+          card.style.marginTop = '0.85rem';
+          card.style.cursor = 'pointer';
+          card.style.transition = 'all 0.2s ease';
+          card.addEventListener('mouseenter', () => {
+            card.style.background = 'var(--subsurface)';
+            card.style.borderColor = 'var(--accent)';
+          });
+          card.addEventListener('mouseleave', () => {
+            card.style.background = 'white';
+            card.style.borderColor = 'var(--border)';
+          });
+          
+          const fileIcon = getFileIcon(hit.filename);
+          card.innerHTML = `
+            <div style="display:flex; align-items:center; gap:0.5rem;">
+              <span style="font-size:1.2rem;">${fileIcon}</span>
+              <strong>${hit.title || hit.filename}</strong>
+            </div>
+            ${hit.path ? `<div class="muted" style="margin-top:0.3rem;">📁 ${hit.path}</div>` : ''}
+            <div class="muted" style="margin-top:0.4rem;">${hit.snippet || 'No snippet available.'}</div>
+            <div style="margin-top:0.6rem; display:flex; gap:0.5rem;">
+              <button class="action-preview" data-id="${hit.id}">Preview</button>
+              <button class="action-share" data-id="${hit.id}">Share</button>
+            </div>
+          `;
+          resultsEl.appendChild(card);
+        });
+        attachRowActions();
+      } catch (err) {
+        if (resultsEl) resultsEl.innerHTML = `<div class="muted">Search failed: ${err.message}</div>`;
+      }
+    };
+
+    if (searchButton) {
+      searchButton.addEventListener('click', () => {
+        clearTimeout(searchDebounceTimer);
+        performSearch();
       });
     }
 
     if (searchInput) {
+      // Debounced live search
+      searchInput.addEventListener('input', () => {
+        clearTimeout(searchDebounceTimer);
+        searchDebounceTimer = setTimeout(performSearch, 500);
+      });
+
       searchInput.addEventListener('keydown', e => {
         if (e.key === 'Enter') {
           e.preventDefault();
-          searchButton.click();
+          clearTimeout(searchDebounceTimer);
+          performSearch();
+        } else if (e.key === 'Escape') {
+          closeSearchDrawer();
+          searchInput.blur();
         }
       });
+    }
+
+    // Keyboard shortcuts
+    document.addEventListener('keydown', (e) => {
+      // Ctrl+F or Cmd+F: Focus search
+      if ((e.ctrlKey || e.metaKey) && e.key === 'f') {
+        e.preventDefault();
+        if (searchInput) searchInput.focus();
+      }
+      
+      // Escape: Close preview modal first, then clear selection
+      if (e.key === 'Escape') {
+        const previewModal = document.getElementById('preview-modal');
+        if (previewModal && !previewModal.classList.contains('hidden')) {
+          e.preventDefault();
+          closePreviewModal();
+          return;
+        }
+        if (selectedDocs.size > 0) {
+          clearSelection();
+        }
+      }
+      
+      // Ctrl+A or Cmd+A: Select all visible documents
+      if ((e.ctrlKey || e.metaKey) && e.key === 'a' && document.activeElement.tagName !== 'INPUT') {
+        e.preventDefault();
+        visibleDocs.forEach(doc => selectedDocs.add(doc.id));
+        document.querySelectorAll('#doc-table-body tr').forEach(tr => {
+          tr.classList.add('selected');
+          const cb = tr.querySelector('.row-select');
+          if (cb) cb.checked = true;
+        });
+        updateToolbarState();
+        updateSelectionBadge();
+      }
+    });
+
+    function addUploadStatus(file) {
+      if (!uploadOutput) return null;
+      const wrapper = document.createElement('div');
+      wrapper.className = 'upload-status';
+      const nameEl = document.createElement('strong');
+      nameEl.textContent = file.name;
+      const statusEl = document.createElement('span');
+      statusEl.textContent = 'Queued';
+      wrapper.append(nameEl, statusEl);
+      uploadOutput.appendChild(wrapper);
+      return statusEl;
+    }
+
+    async function uploadSingleFile(file, path) {
+      const statusEl = addUploadStatus(file);
+      const update = (message, state) => {
+        if (!statusEl) return;
+        statusEl.textContent = message;
+        statusEl.classList.remove('success', 'error');
+        if (state) statusEl.classList.add(state);
+      };
+      try {
+        update('Preparing upload...');
+        const presign = await api('/uploads/presign','POST',{ filename: file.name, content_type: file.type || 'application/octet-stream', path });
+        update('Uploading to storage...');
+        const put = await fetch(presign.url, { method:'PUT', headers:{ 'Content-Type': file.type || 'application/octet-stream' }, body: file });
+        if (!put.ok) throw new Error(await put.text());
+        update('Finalizing upload...');
+        await api('/uploads/complete','POST',{ key: presign.key, filename: file.name, content_type: file.type || 'application/octet-stream', size: file.size, path });
+        update('Uploaded • processing', 'success');
+        return true;
+      } catch (err) {
+        update(`Failed: ${err.message}`, 'error');
+        throw err;
+      }
+    }
+
+    function describeFileSelection(list) {
+      if (!list || !list.length) return '';
+      if (list.length === 1) return `Selected: ${list[0].name}`;
+      return `${list.length} files selected`;
+    }
+
+    function updateFileSelectionDisplay(files) {
+      if (fileNameDisplay) {
+        fileNameDisplay.textContent = describeFileSelection(files);
+      }
     }
 
     if (fileDropArea) {
@@ -1157,25 +1994,317 @@
       fileDropArea.addEventListener('drop', e => {
         e.preventDefault();
         if (fileInput && e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files.length) {
-          fileInput.files = e.dataTransfer.files;
-          fileNameDisplay.textContent = `Selected: ${fileInput.files[0].name}`;
+          const dt = new DataTransfer();
+          Array.from(e.dataTransfer.files).forEach(file => dt.items.add(file));
+          fileInput.files = dt.files;
+          updateFileSelectionDisplay(Array.from(dt.files));
         }
       });
     }
     if (fileInput) {
       fileInput.addEventListener('change', () => {
-        if (fileInput.files.length) fileNameDisplay.textContent = `Selected: ${fileInput.files[0].name}`;
-        else fileNameDisplay.textContent = '';
+        updateFileSelectionDisplay(Array.from(fileInput.files));
       });
     }
     if (uploadButton) {
       uploadButton.addEventListener('click', async () => {
         if (!token) { alert('Sign in first.'); return; }
-        if (!fileInput || !fileInput.files.length) { alert('Select a file to upload.'); return; }
-        const file = fileInput.files[0];
+        if (!fileInput || !fileInput.files.length) { alert('Select one or more files to upload.'); return; }
+        const files = Array.from(fileInput.files);
         const path = pathInput.value.trim();
-        showStatus('upout', 'Preparing upload...', 'info');
-        try {
-          const presign = await api('/uploads/presign','POST',{ filename: file.name, content_type: file.type || 'application/octet-stream', path });
-          showStatus('upout', 'Uploading...', 'info');
-          const put = await fetch(presign.url, { method:'PUT', headers:{ 'Content-Type': file.type || 'application/octet-stream' }, body: file })
+        if (uploadOutput) uploadOutput.innerHTML = '';
+        uploadButton.disabled = true;
+        const originalLabel = uploadButton.textContent;
+        uploadButton.textContent = 'Uploading...';
+
+        const results = await Promise.allSettled(files.map(file => uploadSingleFile(file, path)));
+
+        uploadButton.disabled = false;
+        uploadButton.textContent = originalLabel;
+
+        const anySuccess = results.some(r => r.status === 'fulfilled');
+        const anyFailure = results.some(r => r.status === 'rejected');
+
+        if (anySuccess) {
+          loadDocuments(true);
+        }
+        if (!anyFailure) {
+          uploadModal.classList.add('hidden');
+          fileInput.value = '';
+          fileNameDisplay.textContent = '';
+        }
+      });
+    }
+
+    updateSessionEmail();
+    if (token) {
+      if (tokenInput) tokenInput.value = token;
+      enterAuthenticatedView(false);
+    } else {
+      appRoot.classList.remove('authed');
+    }
+
+    // ===== FOLDER MANAGEMENT =====
+
+    const newFolderModal = document.getElementById('new-folder-modal');
+    const newFolderBtn = document.getElementById('new-folder-btn');
+    const newFolderClose = document.getElementById('new-folder-close');
+    const newFolderCancel = document.getElementById('new-folder-cancel');
+    const newFolderCreate = document.getElementById('new-folder-create');
+    const newFolderNameInput = document.getElementById('new-folder-name');
+
+    const renameFolderModal = document.getElementById('rename-folder-modal');
+    const renameFolderClose = document.getElementById('rename-folder-close');
+    const renameFolderCancel = document.getElementById('rename-folder-cancel');
+    const renameFolderSave = document.getElementById('rename-folder-save');
+    const renameFolderPathInput = document.getElementById('rename-folder-path');
+    const renameFolderNewnameInput = document.getElementById('rename-folder-newname');
+
+    const deleteFolderModal = document.getElementById('delete-folder-modal');
+    const deleteFolderClose = document.getElementById('delete-folder-close');
+    const deleteFolderCancel = document.getElementById('delete-folder-cancel');
+    const deleteFolderConfirm = document.getElementById('delete-folder-confirm');
+    const deleteFolderPathInput = document.getElementById('delete-folder-path');
+    const deleteFolderRecursive = document.getElementById('delete-folder-recursive');
+
+    const contextMenu = document.getElementById('context-menu');
+    const ctxNewFolder = document.getElementById('ctx-new-folder');
+    const ctxRenameFolder = document.getElementById('ctx-rename-folder');
+    const ctxDeleteFolder = document.getElementById('ctx-delete-folder');
+
+    let contextMenuTargetPath = '';
+
+    // Open new folder modal
+    function openNewFolderModal(prefillPath = '') {
+      if (!token) { alert('Sign in first.'); return; }
+      if (newFolderNameInput) newFolderNameInput.value = prefillPath;
+      if (newFolderModal) newFolderModal.classList.remove('hidden');
+      if (newFolderNameInput) newFolderNameInput.focus();
+    }
+
+    // Close new folder modal
+    function closeNewFolderModal() {
+      if (newFolderModal) newFolderModal.classList.add('hidden');
+      if (newFolderNameInput) newFolderNameInput.value = '';
+    }
+
+    // Create folder
+    async function createFolder() {
+      if (!token) { alert('Sign in first.'); return; }
+      const path = newFolderNameInput ? newFolderNameInput.value.trim() : '';
+      if (!path) { alert('Enter a folder name.'); return; }
+      
+      try {
+        await api('/folders', 'POST', { path });
+        alert(`Folder "${path}" created successfully.`);
+        closeNewFolderModal();
+        await loadPaths();
+        // Navigate to the new folder
+        setActivePath(path);
+        await loadDocuments(true);
+      } catch (err) {
+        alert(`Failed to create folder: ${err.message}`);
+      }
+    }
+
+    // Open rename folder modal
+    function openRenameFolderModal(folderPath) {
+      if (!token) { alert('Sign in first.'); return; }
+      if (!folderPath) { alert('Select a folder to rename.'); return; }
+      
+      if (renameFolderPathInput) renameFolderPathInput.value = folderPath;
+      if (renameFolderNewnameInput) {
+        const lastSegment = folderPath.split('/').pop();
+        renameFolderNewnameInput.value = lastSegment;
+      }
+      if (renameFolderModal) renameFolderModal.classList.remove('hidden');
+      if (renameFolderNewnameInput) renameFolderNewnameInput.focus();
+    }
+
+    // Close rename folder modal
+    function closeRenameFolderModal() {
+      if (renameFolderModal) renameFolderModal.classList.add('hidden');
+      if (renameFolderPathInput) renameFolderPathInput.value = '';
+      if (renameFolderNewnameInput) renameFolderNewnameInput.value = '';
+    }
+
+    // Rename folder
+    async function renameFolder() {
+      if (!token) { alert('Sign in first.'); return; }
+      const oldPath = renameFolderPathInput ? renameFolderPathInput.value.trim() : '';
+      const newName = renameFolderNewnameInput ? renameFolderNewnameInput.value.trim() : '';
+      
+      if (!oldPath || !newName) { alert('Provide both paths.'); return; }
+      
+      // Build new path
+      const parts = oldPath.split('/');
+      parts[parts.length - 1] = newName;
+      const newPath = parts.join('/');
+      
+      if (oldPath === newPath) {
+        alert('New name is the same as the old name.');
+        return;
+      }
+      
+      try {
+        const result = await api('/folders', 'PATCH', { old_path: oldPath, new_path: newPath });
+        alert(`Folder renamed successfully. ${result.documents_updated} documents updated.`);
+        closeRenameFolderModal();
+        await loadPaths();
+        // Navigate to the renamed folder
+        setActivePath(newPath);
+        await loadDocuments(true);
+      } catch (err) {
+        alert(`Failed to rename folder: ${err.message}`);
+      }
+    }
+
+    // Open delete folder modal
+    function openDeleteFolderModal(folderPath) {
+      if (!token) { alert('Sign in first.'); return; }
+      if (!folderPath) { alert('Select a folder to delete.'); return; }
+      
+      if (deleteFolderPathInput) deleteFolderPathInput.value = folderPath;
+      if (deleteFolderRecursive) deleteFolderRecursive.checked = false;
+      if (deleteFolderModal) deleteFolderModal.classList.remove('hidden');
+    }
+
+    // Close delete folder modal
+    function closeDeleteFolderModal() {
+      if (deleteFolderModal) deleteFolderModal.classList.add('hidden');
+      if (deleteFolderPathInput) deleteFolderPathInput.value = '';
+      if (deleteFolderRecursive) deleteFolderRecursive.checked = false;
+    }
+
+    // Delete folder
+    async function deleteFolder() {
+      if (!token) { alert('Sign in first.'); return; }
+      const path = deleteFolderPathInput ? deleteFolderPathInput.value.trim() : '';
+      const recursive = deleteFolderRecursive ? deleteFolderRecursive.checked : false;
+      
+      if (!path) { alert('No folder selected.'); return; }
+      
+      const confirmMsg = recursive 
+        ? `Are you sure you want to delete "${path}" and ALL its contents? This cannot be undone.`
+        : `Are you sure you want to delete the empty folder "${path}"?`;
+      
+      if (!confirm(confirmMsg)) return;
+      
+      try {
+        const params = new URLSearchParams({ path });
+        if (recursive) params.set('recursive', 'true');
+        const result = await api('/folders?' + params.toString(), 'DELETE');
+        
+        const msg = recursive 
+          ? `Folder deleted. ${result.documents_deleted} documents and ${result.folders_deleted} folders removed.`
+          : 'Empty folder deleted successfully.';
+        alert(msg);
+        
+        closeDeleteFolderModal();
+        await loadPaths();
+        // Navigate to parent folder or root
+        const parentPath = path.split('/').slice(0, -1).join('/');
+        setActivePath(parentPath);
+        await loadDocuments(true);
+      } catch (err) {
+        alert(`Failed to delete folder: ${err.message}`);
+      }
+    }
+
+    // Context menu handlers
+    function showContextMenu(x, y, folderPath) {
+      contextMenuTargetPath = folderPath;
+      if (contextMenu) {
+        contextMenu.style.left = `${x}px`;
+        contextMenu.style.top = `${y}px`;
+        contextMenu.classList.remove('hidden');
+      }
+    }
+
+    function hideContextMenu() {
+      if (contextMenu) contextMenu.classList.add('hidden');
+      contextMenuTargetPath = '';
+    }
+
+    // Event listeners for modals
+    if (newFolderBtn) newFolderBtn.addEventListener('click', () => openNewFolderModal(currentPath));
+    if (newFolderClose) newFolderClose.addEventListener('click', closeNewFolderModal);
+    if (newFolderCancel) newFolderCancel.addEventListener('click', closeNewFolderModal);
+    if (newFolderCreate) newFolderCreate.addEventListener('click', createFolder);
+    if (newFolderNameInput) {
+      newFolderNameInput.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') {
+          e.preventDefault();
+          createFolder();
+        }
+      });
+    }
+
+    if (renameFolderClose) renameFolderClose.addEventListener('click', closeRenameFolderModal);
+    if (renameFolderCancel) renameFolderCancel.addEventListener('click', closeRenameFolderModal);
+    if (renameFolderSave) renameFolderSave.addEventListener('click', renameFolder);
+    if (renameFolderNewnameInput) {
+      renameFolderNewnameInput.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') {
+          e.preventDefault();
+          renameFolder();
+        }
+      });
+    }
+
+    if (deleteFolderClose) deleteFolderClose.addEventListener('click', closeDeleteFolderModal);
+    if (deleteFolderCancel) deleteFolderCancel.addEventListener('click', closeDeleteFolderModal);
+    if (deleteFolderConfirm) deleteFolderConfirm.addEventListener('click', deleteFolder);
+
+    // Context menu event listeners
+    if (ctxNewFolder) ctxNewFolder.addEventListener('click', () => {
+      hideContextMenu();
+      openNewFolderModal(contextMenuTargetPath ? contextMenuTargetPath + '/' : '');
+    });
+    if (ctxRenameFolder) ctxRenameFolder.addEventListener('click', () => {
+      hideContextMenu();
+      openRenameFolderModal(contextMenuTargetPath);
+    });
+    if (ctxDeleteFolder) ctxDeleteFolder.addEventListener('click', () => {
+      hideContextMenu();
+      openDeleteFolderModal(contextMenuTargetPath);
+    });
+
+    // Close context menu when clicking outside
+    document.addEventListener('click', (e) => {
+      if (contextMenu && !contextMenu.contains(e.target)) {
+        hideContextMenu();
+      }
+    });
+
+    // Add right-click support to tree items
+    document.addEventListener('contextmenu', (e) => {
+      const treeItem = e.target.closest('.tree-item');
+      if (treeItem && treeItem.dataset.path !== undefined) {
+        e.preventDefault();
+        const folderPath = treeItem.dataset.path;
+        // Don't show context menu for root "All documents"
+        if (folderPath === '' && treeItem.textContent.includes('All documents')) return;
+        showContextMenu(e.pageX, e.pageY, folderPath);
+      }
+    });
+
+    // Close modals when clicking on overlay
+    if (newFolderModal) {
+      newFolderModal.addEventListener('click', (e) => {
+        if (e.target === newFolderModal) closeNewFolderModal();
+      });
+    }
+    if (renameFolderModal) {
+      renameFolderModal.addEventListener('click', (e) => {
+        if (e.target === renameFolderModal) closeRenameFolderModal();
+      });
+    }
+    if (deleteFolderModal) {
+      deleteFolderModal.addEventListener('click', (e) => {
+        if (e.target === deleteFolderModal) closeDeleteFolderModal();
+      });
+    }
+  </script>
+</body>
+</html>
