@@ -1,0 +1,574 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard - VeriCase Docs</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif; background: #f5f5f5; }
+        
+        .header {
+            background: white;
+            border-bottom: 1px solid #e0e0e0;
+            padding: 16px 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .header h1 { font-size: 20px; font-weight: 600; color: #333; }
+        .back-link { color: #2196F3; text-decoration: none; font-size: 14px; }
+        .back-link:hover { text-decoration: underline; }
+        
+        .container {
+            max-width: 1200px;
+            margin: 32px auto;
+            padding: 0 24px;
+        }
+        
+        .card {
+            background: white;
+            border-radius: 8px;
+            padding: 24px;
+            margin-bottom: 24px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        
+        .card-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #333;
+        }
+        
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .btn-primary {
+            background: #2196F3;
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background: #1976D2;
+        }
+        
+        .btn-danger {
+            background: #f44336;
+            color: white;
+        }
+        
+        .btn-danger:hover {
+            background: #d32f2f;
+        }
+        
+        .btn-small {
+            padding: 6px 12px;
+            font-size: 12px;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        
+        th {
+            text-align: left;
+            padding: 12px;
+            border-bottom: 2px solid #e0e0e0;
+            font-weight: 600;
+            color: #333;
+        }
+        
+        td {
+            padding: 12px;
+            border-bottom: 1px solid #f0f0f0;
+        }
+        
+        tr:hover {
+            background: #f9f9f9;
+        }
+        
+        .badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 500;
+            text-transform: uppercase;
+        }
+        
+        .badge-admin { background: #e3f2fd; color: #1976d2; }
+        .badge-editor { background: #f3e5f5; color: #7b1fa2; }
+        .badge-viewer { background: #f1f8e9; color: #558b2f; }
+        .badge-active { background: #e8f5e9; color: #2e7d32; }
+        .badge-inactive { background: #ffebee; color: #c62828; }
+        
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 1000;
+        }
+        
+        .modal-content {
+            background: white;
+            width: 90%;
+            max-width: 500px;
+            margin: 50px auto;
+            border-radius: 8px;
+            padding: 24px;
+        }
+        
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        
+        .modal-title {
+            font-size: 18px;
+            font-weight: 600;
+        }
+        
+        .close-btn {
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: #666;
+        }
+        
+        .form-group {
+            margin-bottom: 16px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: #333;
+        }
+        
+        .form-group input,
+        .form-group select {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+        
+        .alert {
+            padding: 12px 16px;
+            border-radius: 4px;
+            margin-bottom: 20px;
+            font-size: 14px;
+        }
+        
+        .alert-success {
+            background: #e8f5e9;
+            color: #2e7d32;
+            border: 1px solid #c8e6c9;
+        }
+        
+        .alert-error {
+            background: #ffebee;
+            color: #c62828;
+            border: 1px solid #ef9a9a;
+        }
+        
+        .empty-state {
+            text-align: center;
+            padding: 40px;
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>Admin Dashboard</h1>
+        <a href="index.html" class="back-link">← Back to Documents</a>
+    </div>
+    
+    <div class="container">
+        <div id="globalAlert"></div>
+        
+        <!-- Users Section -->
+        <div class="card">
+            <div class="card-header">
+                <div class="card-title">Users</div>
+            </div>
+            <div id="usersTable">
+                <div class="empty-state">Loading users...</div>
+            </div>
+        </div>
+        
+        <!-- Invitations Section -->
+        <div class="card">
+            <div class="card-header">
+                <div class="card-title">Pending Invitations</div>
+                <button class="btn btn-primary" onclick="showInviteModal()">+ Invite User</button>
+            </div>
+            <div id="invitationsTable">
+                <div class="empty-state">Loading invitations...</div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Invite User Modal -->
+    <div id="inviteModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title">Invite New User</h2>
+                <button class="close-btn" onclick="closeInviteModal()">&times;</button>
+            </div>
+            <div id="inviteAlert"></div>
+            <form id="inviteForm">
+                <div class="form-group">
+                    <label for="inviteEmail">Email</label>
+                    <input type="email" id="inviteEmail" required>
+                </div>
+                <div class="form-group">
+                    <label for="inviteRole">Role</label>
+                    <select id="inviteRole" required>
+                        <option value="viewer">Viewer</option>
+                        <option value="editor">Editor</option>
+                        <option value="admin">Admin</option>
+                    </select>
+                </div>
+                <button type="submit" class="btn btn-primary" id="inviteBtn">Send Invitation</button>
+            </form>
+        </div>
+    </div>
+    
+    <!-- Edit User Modal -->
+    <div id="editModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title">Edit User</h2>
+                <button class="close-btn" onclick="closeEditModal()">&times;</button>
+            </div>
+            <div id="editAlert"></div>
+            <form id="editForm">
+                <input type="hidden" id="editUserId">
+                <div class="form-group">
+                    <label for="editRole">Role</label>
+                    <select id="editRole" required>
+                        <option value="viewer">Viewer</option>
+                        <option value="editor">Editor</option>
+                        <option value="admin">Admin</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="editStatus">Status</label>
+                    <select id="editStatus" required>
+                        <option value="true">Active</option>
+                        <option value="false">Inactive</option>
+                    </select>
+                </div>
+                <button type="submit" class="btn btn-primary" id="editBtn">Save Changes</button>
+            </form>
+        </div>
+    </div>
+    
+    <script>
+        const API_BASE = window.location.origin;
+        const token = localStorage.getItem('jwt');
+        
+        if (!token) {
+            window.location.href = 'index.html';
+        }
+        
+        // Load users
+        async function loadUsers() {
+            try {
+                const response = await fetch(`${API_BASE}/users`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                
+                if (response.status === 403) {
+                    document.getElementById('usersTable').innerHTML = 
+                        '<div class="empty-state">You do not have permission to view this page</div>';
+                    document.getElementById('invitationsTable').innerHTML = '';
+                    return;
+                }
+                
+                if (!response.ok) throw new Error('Failed to load users');
+                
+                const users = await response.json();
+                
+                if (users.length === 0) {
+                    document.getElementById('usersTable').innerHTML = 
+                        '<div class="empty-state">No users found</div>';
+                    return;
+                }
+                
+                let html = `
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Email</th>
+                                <th>Display Name</th>
+                                <th>Role</th>
+                                <th>Status</th>
+                                <th>Joined</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                `;
+                
+                users.forEach(user => {
+                    html += `
+                        <tr>
+                            <td>${user.email}</td>
+                            <td>${user.display_name || '-'}</td>
+                            <td><span class="badge badge-${user.role}">${user.role}</span></td>
+                            <td><span class="badge badge-${user.is_active ? 'active' : 'inactive'}">${user.is_active ? 'Active' : 'Inactive'}</span></td>
+                            <td>${new Date(user.created_at).toLocaleDateString()}</td>
+                            <td>
+                                <button class="btn btn-primary btn-small" onclick="showEditModal('${user.id}', '${user.role}', ${user.is_active})">Edit</button>
+                            </td>
+                        </tr>
+                    `;
+                });
+                
+                html += '</tbody></table>';
+                document.getElementById('usersTable').innerHTML = html;
+                
+            } catch (error) {
+                console.error('Error loading users:', error);
+                document.getElementById('usersTable').innerHTML = 
+                    '<div class="empty-state">Failed to load users</div>';
+            }
+        }
+        
+        // Load invitations
+        async function loadInvitations() {
+            try {
+                const response = await fetch(`${API_BASE}/users/invitations`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                
+                if (!response.ok) throw new Error('Failed to load invitations');
+                
+                const invitations = await response.json();
+                
+                if (invitations.length === 0) {
+                    document.getElementById('invitationsTable').innerHTML = 
+                        '<div class="empty-state">No pending invitations</div>';
+                    return;
+                }
+                
+                let html = `
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Email</th>
+                                <th>Role</th>
+                                <th>Expires</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                `;
+                
+                invitations.forEach(inv => {
+                    const expiresDate = new Date(inv.expires_at);
+                    html += `
+                        <tr>
+                            <td>${inv.email}</td>
+                            <td><span class="badge badge-${inv.role}">${inv.role}</span></td>
+                            <td>${expiresDate.toLocaleDateString()}</td>
+                            <td>
+                                <button class="btn btn-danger btn-small" onclick="revokeInvitation('${inv.token}')">Revoke</button>
+                            </td>
+                        </tr>
+                    `;
+                });
+                
+                html += '</tbody></table>';
+                document.getElementById('invitationsTable').innerHTML = html;
+                
+            } catch (error) {
+                console.error('Error loading invitations:', error);
+                document.getElementById('invitationsTable').innerHTML = 
+                    '<div class="empty-state">Failed to load invitations</div>';
+            }
+        }
+        
+        // Invite user
+        function showInviteModal() {
+            document.getElementById('inviteModal').style.display = 'block';
+            document.getElementById('inviteForm').reset();
+            document.getElementById('inviteAlert').innerHTML = '';
+        }
+        
+        function closeInviteModal() {
+            document.getElementById('inviteModal').style.display = 'none';
+        }
+        
+        document.getElementById('inviteForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const email = document.getElementById('inviteEmail').value;
+            const role = document.getElementById('inviteRole').value;
+            const btn = document.getElementById('inviteBtn');
+            const alertDiv = document.getElementById('inviteAlert');
+            
+            btn.disabled = true;
+            btn.textContent = 'Sending...';
+            alertDiv.innerHTML = '';
+            
+            try {
+                const response = await fetch(`${API_BASE}/users/invitations`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ email, role })
+                });
+                
+                if (!response.ok) {
+                    const error = await response.json();
+                    throw new Error(error.detail || 'Failed to send invitation');
+                }
+                
+                alertDiv.innerHTML = '<div class="alert alert-success">Invitation sent successfully!</div>';
+                
+                setTimeout(() => {
+                    closeInviteModal();
+                    loadInvitations();
+                }, 1500);
+                
+            } catch (error) {
+                console.error('Error sending invitation:', error);
+                alertDiv.innerHTML = `<div class="alert alert-error">${error.message}</div>`;
+            } finally {
+                btn.disabled = false;
+                btn.textContent = 'Send Invitation';
+            }
+        });
+        
+        // Edit user
+        function showEditModal(userId, role, isActive) {
+            document.getElementById('editModal').style.display = 'block';
+            document.getElementById('editUserId').value = userId;
+            document.getElementById('editRole').value = role;
+            document.getElementById('editStatus').value = isActive.toString();
+            document.getElementById('editAlert').innerHTML = '';
+        }
+        
+        function closeEditModal() {
+            document.getElementById('editModal').style.display = 'none';
+        }
+        
+        document.getElementById('editForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const userId = document.getElementById('editUserId').value;
+            const role = document.getElementById('editRole').value;
+            const is_active = document.getElementById('editStatus').value === 'true';
+            const btn = document.getElementById('editBtn');
+            const alertDiv = document.getElementById('editAlert');
+            
+            btn.disabled = true;
+            btn.textContent = 'Saving...';
+            alertDiv.innerHTML = '';
+            
+            try {
+                const response = await fetch(`${API_BASE}/users/${userId}`, {
+                    method: 'PATCH',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ role, is_active })
+                });
+                
+                if (!response.ok) {
+                    const error = await response.json();
+                    throw new Error(error.detail || 'Failed to update user');
+                }
+                
+                alertDiv.innerHTML = '<div class="alert alert-success">User updated successfully!</div>';
+                
+                setTimeout(() => {
+                    closeEditModal();
+                    loadUsers();
+                }, 1500);
+                
+            } catch (error) {
+                console.error('Error updating user:', error);
+                alertDiv.innerHTML = `<div class="alert alert-error">${error.message}</div>`;
+            } finally {
+                btn.disabled = false;
+                btn.textContent = 'Save Changes';
+            }
+        });
+        
+        // Revoke invitation
+        async function revokeInvitation(token) {
+            if (!confirm('Are you sure you want to revoke this invitation?')) return;
+            
+            try {
+                const response = await fetch(`${API_BASE}/users/invitations/${token}`, {
+                    method: 'DELETE',
+                    headers: { 'Authorization': `Bearer ${window.localStorage.getItem('jwt')}` }
+                });
+                
+                if (!response.ok) throw new Error('Failed to revoke invitation');
+                
+                const alertDiv = document.getElementById('globalAlert');
+                alertDiv.innerHTML = '<div class="alert alert-success">Invitation revoked successfully!</div>';
+                
+                setTimeout(() => {
+                    alertDiv.innerHTML = '';
+                }, 3000);
+                
+                loadInvitations();
+                
+            } catch (error) {
+                console.error('Error revoking invitation:', error);
+                alert('Failed to revoke invitation');
+            }
+        }
+        
+        // Close modals on outside click
+        window.onclick = function(event) {
+            const inviteModal = document.getElementById('inviteModal');
+            const editModal = document.getElementById('editModal');
+            if (event.target === inviteModal) {
+                closeInviteModal();
+            } else if (event.target === editModal) {
+                closeEditModal();
+            }
+        }
+        
+        // Load data on page load
+        loadUsers();
+        loadInvitations();
+    </script>
+</body>
+</html>

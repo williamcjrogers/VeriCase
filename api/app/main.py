@@ -18,6 +18,12 @@ from .tasks import celery_app
 from .security import get_db, current_user, hash_password, verify_password, sign_token
 from .watermark import build_watermarked_pdf, normalize_watermark_text
 from pydantic import BaseModel
+from .users import router as users_router
+from .sharing import router as sharing_router
+from .favorites import router as favorites_router
+from .versioning import router as versioning_router
+from .ai_intelligence import router as ai_router
+from .ai_orchestrator import router as orchestrator_router
 
 logger = logging.getLogger(__name__)
 
@@ -49,6 +55,15 @@ class DocumentListResponse(BaseModel):
 class PathListResponse(BaseModel):
     paths: List[str]
 app = FastAPI(title="VeriCase Docs API", version="0.3.0")
+
+# Include routers
+app.include_router(users_router)
+app.include_router(sharing_router)
+app.include_router(favorites_router)
+app.include_router(versioning_router)
+app.include_router(ai_router)
+app.include_router(orchestrator_router)
+
 origins=[o.strip() for o in settings.CORS_ORIGINS.split(",") if o.strip()]
 if origins:
     app.add_middleware(CORSMiddleware, allow_origins=origins, allow_credentials=True, allow_methods=["*"], allow_headers=["*"])
@@ -100,9 +115,35 @@ def complete_upload(body: dict = Body(...), db: Session = Depends(get_db), user:
     size=int(body.get("size") or 0); title=body.get("title"); path=body.get("path")
     # Set empty paths to None so they're treated consistently
     if path == "": path = None
-    doc=Document(filename=filename, path=path, content_type=ct, size=size, bucket=settings.MINIO_BUCKET, s3_key=key, title=title, status=DocStatus.NEW, owner_user_id=user.id)
-    db.add(doc); db.commit(); celery_app.send_task("worker_app.worker.ocr_and_index", args=[str(doc.id)])
-    return {"id": str(doc.id), "status":"QUEUED"}
+    
+    # Determine workspace type and privacy based on path
+    workspace_type = "shared"
+    is_private = False
+    if path:
+        if path.startswith("private/"):
+            workspace_type = "private"
+            is_private = True
+        elif path.startswith("shared/"):
+            workspace_type = "shared"
+            is_private = False
+    
+    doc=Document(
+        filename=filename, 
+        path=path, 
+        content_type=ct, 
+        size=size, 
+        bucket=settings.MINIO_BUCKET, 
+        s3_key=key, 
+        title=title, 
+        status=DocStatus.NEW, 
+        owner_user_id=user.id,
+        workspace_type=workspace_type,
+        is_private=is_private
+    )
+    db.add(doc); db.commit(); 
+    # Queue OCR and AI classification
+    celery_app.send_task("worker_app.worker.ocr_and_index", args=[str(doc.id)])
+    return {"id": str(doc.id), "status":"QUEUED", "ai_enabled": True}
 @app.post("/uploads/multipart/start")
 def multipart_start_ep(body: dict = Body(...), user: User = Depends(current_user)):
     filename=body.get("filename"); ct=body.get("content_type") or "application/octet-stream"
@@ -118,7 +159,31 @@ def multipart_complete_ep(body: dict = Body(...), db: Session = Depends(get_db),
     size=int(body.get("size") or 0); title=body.get("title"); path=body.get("path")
     # Set empty paths to None so they're treated consistently
     if path == "": path = None
-    doc=Document(filename=filename, path=path, content_type=ct, size=size, bucket=settings.MINIO_BUCKET, s3_key=key, title=title, status=DocStatus.NEW, owner_user_id=user.id)
+    
+    # Determine workspace type and privacy based on path
+    workspace_type = "shared"
+    is_private = False
+    if path:
+        if path.startswith("private/"):
+            workspace_type = "private"
+            is_private = True
+        elif path.startswith("shared/"):
+            workspace_type = "shared"
+            is_private = False
+    
+    doc=Document(
+        filename=filename, 
+        path=path, 
+        content_type=ct, 
+        size=size, 
+        bucket=settings.MINIO_BUCKET, 
+        s3_key=key, 
+        title=title, 
+        status=DocStatus.NEW, 
+        owner_user_id=user.id,
+        workspace_type=workspace_type,
+        is_private=is_private
+    )
     db.add(doc); db.commit(); celery_app.send_task("worker_app.worker.ocr_and_index", args=[str(doc.id)])
     return {"id": str(doc.id), "status":"QUEUED"}
 
@@ -191,6 +256,59 @@ def list_paths(
         if p[0]
     )
     return PathListResponse(paths=path_values)
+
+@app.get("/documents/recent", response_model=DocumentListResponse)
+def get_recent_documents(
+    limit: int = Query(default=20, ge=1, le=100),
+    db: Session = Depends(get_db),
+    user: User = Depends(current_user),
+):
+    """Get recently accessed or created documents"""
+    from datetime import datetime, timedelta
+    
+    # Get documents accessed in last 30 days, or fall back to recently created
+    thirty_days_ago = datetime.utcnow() - timedelta(days=30)
+    
+    # Try to get recently accessed first
+    recent_query = db.query(Document).filter(
+        Document.owner_user_id == user.id,
+        Document.last_accessed_at.isnot(None),
+        Document.last_accessed_at >= thirty_days_ago
+    ).order_by(Document.last_accessed_at.desc())
+    
+    recent_docs = recent_query.limit(limit).all()
+    
+    # If not enough recently accessed, add recently created
+    if len(recent_docs) < limit:
+        created_query = db.query(Document).filter(
+            Document.owner_user_id == user.id
+        ).order_by(Document.created_at.desc())
+        
+        created_docs = created_query.limit(limit - len(recent_docs)).all()
+        
+        # Merge and deduplicate
+        seen_ids = {doc.id for doc in recent_docs}
+        for doc in created_docs:
+            if doc.id not in seen_ids:
+                recent_docs.append(doc)
+                seen_ids.add(doc.id)
+    
+    items = [
+        DocumentSummary(
+            id=str(doc.id),
+            filename=doc.filename,
+            path=doc.path,
+            status=doc.status.value if doc.status else DocStatus.NEW.value,
+            size=doc.size or 0,
+            content_type=doc.content_type,
+            title=doc.title,
+            created_at=doc.created_at,
+            updated_at=doc.updated_at or doc.created_at,
+        )
+        for doc in recent_docs
+    ]
+    
+    return DocumentListResponse(total=len(items), items=items)
 
 # Documents
 @app.get("/documents/{doc_id}")

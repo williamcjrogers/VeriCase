@@ -11,6 +11,7 @@ def client():
     if _client is None:
         _client = OpenSearch(
             hosts=[{"host": settings.OPENSEARCH_HOST, "port": settings.OPENSEARCH_PORT}],
+            http_auth=('admin', 'admin'),
             http_compress=True,
             use_ssl=settings.OPENSEARCH_USE_SSL,
             verify_certs=settings.OPENSEARCH_VERIFY_CERTS,

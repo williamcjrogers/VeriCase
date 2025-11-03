@@ -98,3 +98,27 @@ class FolderShare(Base):
     permission = Column(String(20), nullable=False, default='view')
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
+
+class Favorite(Base):
+    __tablename__="favorites"
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    user_id = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=False)
+    user = relationship("User")
+    document_id = Column(UUID(as_uuid=True), ForeignKey("documents.id"), nullable=False)
+    document = relationship("Document")
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+
+class DocumentVersion(Base):
+    __tablename__="document_versions"
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    document_id = Column(UUID(as_uuid=True), ForeignKey("documents.id"), nullable=False)
+    document = relationship("Document")
+    version_number = Column(Integer, nullable=False)
+    s3_key = Column(String(2048), nullable=False)
+    filename = Column(String(512), nullable=False)
+    size = Column(Integer, nullable=True)
+    content_type = Column(String(128), nullable=True)
+    created_by = Column(UUID(as_uuid=True), ForeignKey("users.id"))
+    creator = relationship("User")
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    comment = Column(Text, nullable=True)

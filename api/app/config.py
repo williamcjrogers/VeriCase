@@ -33,4 +33,18 @@ class Settings(BaseSettings):
     JWT_SECRET: str = "change-this-secret"
     JWT_ISSUER: str = "vericase-docs"
     JWT_EXPIRE_MIN: int = 7200
+    
+    # AI Model API Keys
+    GEMINI_API_KEY: str = ""
+    CLAUDE_API_KEY: str = ""
+    OPENAI_API_KEY: str = ""
+    GROK_API_KEY: str = ""
+    PERPLEXITY_API_KEY: str = ""
+    
+    # AI Feature Flags
+    ENABLE_AI_AUTO_CLASSIFY: bool = True
+    ENABLE_AI_DATASET_INSIGHTS: bool = True
+    ENABLE_AI_NATURAL_LANGUAGE_QUERY: bool = True
+    AI_DEFAULT_MODEL: str = "gemini"
+
 settings = Settings()
