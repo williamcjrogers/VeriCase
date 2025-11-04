@@ -28,3 +28,6 @@ def current_user(creds: HTTPAuthorizationCredentials = Depends(bearer), db: Sess
     user = db.query(User).filter(User.id == _u.UUID(payload["sub"])).first()
     if not user: raise HTTPException(status_code=401, detail="User not found")
     return user
+
+# Alias for compatibility with cases.py
+get_current_user = current_user

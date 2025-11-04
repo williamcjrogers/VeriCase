@@ -96,7 +96,7 @@ def presign_put(key: str, content_type: str, expires: int=3600) -> str:
     return url
 def presign_get(key: str, expires: int=300) -> str:
     url = s3(public=bool(settings.MINIO_PUBLIC_ENDPOINT)).generate_presigned_url("get_object",
-        Params={"Bucket": settings.MINIO_BUCKET, "Key": key},
+        Params={"Bucket": settings.MINIO_BUCKET, "Key": key, "ResponseContentDisposition": "inline"},
         ExpiresIn=expires, HttpMethod="GET")
     return url
 def multipart_start(key: str, content_type: str) -> str:

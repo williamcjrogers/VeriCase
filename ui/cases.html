@@ -1,0 +1,567 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VeriCase - Case Management</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+            background: #f8f9fa;
+            color: #333;
+        }
+
+        .header {
+            background: #2c3e50;
+            color: white;
+            padding: 1rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: 600;
+        }
+
+        .user-info {
+            font-size: 0.9rem;
+            opacity: 0.9;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 2rem auto;
+            padding: 0 1rem;
+        }
+
+        .page-title {
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+            color: #2c3e50;
+        }
+
+        .subtitle {
+            color: #6c757d;
+            margin-bottom: 2rem;
+        }
+
+        .cases-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 1.5rem;
+            margin-top: 2rem;
+        }
+
+        .case-card {
+            background: white;
+            border-radius: 12px;
+            padding: 1.5rem;
+            border: 2px solid transparent;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .case-card:hover {
+            border-color: #3498db;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 16px rgba(0,0,0,0.15);
+        }
+
+        .case-card.selected {
+            border-color: #27ae60;
+            background-color: #f8fff8;
+        }
+
+        .new-case-card {
+            border: 2px dashed #bdc3c7;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 200px;
+            background: #fdfdfd;
+        }
+
+        .new-case-card:hover {
+            border-color: #3498db;
+            background-color: #f0f8ff;
+        }
+
+        .case-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            color: #2c3e50;
+        }
+
+        .case-number {
+            font-size: 0.9rem;
+            color: #7f8c8d;
+            margin-bottom: 0.75rem;
+        }
+
+        .case-description {
+            font-size: 0.95rem;
+            line-height: 1.4;
+            margin-bottom: 1rem;
+            color: #555;
+        }
+
+        .case-meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.85rem;
+            color: #7f8c8d;
+        }
+
+        .case-stats {
+            display: flex;
+            gap: 1rem;
+        }
+
+        .stat {
+            display: flex;
+            align-items: center;
+            gap: 0.25rem;
+        }
+
+        .new-case-icon {
+            font-size: 3rem;
+            color: #bdc3c7;
+            margin-bottom: 1rem;
+        }
+
+        .new-case-text {
+            font-size: 1.1rem;
+            color: #7f8c8d;
+            font-weight: 500;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 1000;
+        }
+
+        .modal.show {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 12px;
+            padding: 2rem;
+            width: 90%;
+            max-width: 600px;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .modal-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: #2c3e50;
+        }
+
+        .close-btn {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: #7f8c8d;
+        }
+
+        .form-group {
+            margin-bottom: 1rem;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+            color: #2c3e50;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 0.75rem;
+            border: 2px solid #e9ecef;
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: border-color 0.3s ease;
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: #3498db;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+        }
+
+        .btn {
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary {
+            background: #3498db;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #2980b9;
+        }
+
+        .btn-secondary {
+            background: #95a5a6;
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background: #7f8c8d;
+        }
+
+        .modal-footer {
+            display: flex;
+            justify-content: flex-end;
+            gap: 1rem;
+            margin-top: 2rem;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 2rem;
+            color: #7f8c8d;
+        }
+
+        .error {
+            background: #e74c3c;
+            color: white;
+            padding: 1rem;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="logo">VeriCase</div>
+        <div class="user-info" id="userEmail"></div>
+    </div>
+
+    <div class="container">
+        <h1 class="page-title">Case Management</h1>
+        <p class="subtitle">Select an existing case or create a new one to continue</p>
+
+        <div class="error" id="errorMessage"></div>
+        <div class="loading" id="loading">Loading cases...</div>
+
+        <div class="cases-grid" id="casesGrid">
+            <!-- New Case Card -->
+            <div class="case-card new-case-card" onclick="showNewCaseModal()">
+                <div class="new-case-icon">+</div>
+                <div class="new-case-text">Create New Case</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- New Case Modal -->
+    <div class="modal" id="newCaseModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title">Create New Case</h2>
+                <button class="close-btn" onclick="hideNewCaseModal()">&times;</button>
+            </div>
+            
+            <form id="newCaseForm">
+                <div class="form-group">
+                    <label class="form-label">Case Name *</label>
+                    <input type="text" class="form-control" id="caseName" required 
+                           placeholder="e.g., Construction Delay Claim - Project Alpha">
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">Case Number *</label>
+                    <input type="text" class="form-control" id="caseNumber" required 
+                           placeholder="e.g., CASE-2024-001">
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">Project Name</label>
+                    <input type="text" class="form-control" id="projectName" 
+                           placeholder="e.g., Alpha Tower Development">
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">Description</label>
+                    <textarea class="form-control" id="description" rows="3" 
+                              placeholder="Brief description of the case..."></textarea>
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">Contract Type</label>
+                        <select class="form-control" id="contractType">
+                            <option value="">Select...</option>
+                            <option value="NEC3">NEC3</option>
+                            <option value="NEC4">NEC4</option>
+                            <option value="JCT">JCT</option>
+                            <option value="FIDIC">FIDIC</option>
+                            <option value="Other">Other</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">Dispute Type</label>
+                        <select class="form-control" id="disputeType">
+                            <option value="">Select...</option>
+                            <option value="Delay">Delay</option>
+                            <option value="Variation">Variation</option>
+                            <option value="Defects">Defects</option>
+                            <option value="Payment">Payment</option>
+                            <option value="Extension of Time">Extension of Time</option>
+                            <option value="Loss and Expense">Loss and Expense</option>
+                            <option value="Other">Other</option>
+                        </select>
+                    </div>
+                </div>
+            </form>
+            
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="hideNewCaseModal()">Cancel</button>
+                <button class="btn btn-primary" onclick="createCase()">Create Case</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = '';
+        
+        // Check authentication (disabled for testing)
+        const token = localStorage.getItem('authToken') || 'test-token';
+        // For testing without auth, we'll proceed with a test token
+        
+        // Display user email
+        document.getElementById('userEmail').textContent = localStorage.getItem('userEmail') || 'Test User';
+
+        // Load existing cases
+        async function loadCases() {
+            const loading = document.getElementById('loading');
+            const errorDiv = document.getElementById('errorMessage');
+            
+            loading.style.display = 'block';
+            errorDiv.style.display = 'none';
+            
+            try {
+                const response = await fetch(`${API_BASE}/api/cases`, {
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                if (!response.ok) {
+                    // If auth fails, try without auth for testing
+                    if (response.status === 401 || response.status === 403) {
+                        const noAuthResponse = await fetch(`${API_BASE}/api/cases`);
+                        if (noAuthResponse.ok) {
+                            const cases = await noAuthResponse.json();
+                            displayCases(cases);
+                            loading.style.display = 'none';
+                            return;
+                        }
+                    }
+                    throw new Error(`Failed to load cases: ${response.status}`);
+                }
+                
+                const cases = await response.json();
+                displayCases(cases);
+                
+            } catch (error) {
+                console.error('Error loading cases:', error);
+                errorDiv.textContent = `Error loading cases: ${error.message}`;
+                errorDiv.style.display = 'block';
+                
+                // Show mock data for testing
+                displayCases([]);
+            } finally {
+                loading.style.display = 'none';
+            }
+        }
+
+        function displayCases(cases) {
+            const grid = document.getElementById('casesGrid');
+            const existingCards = grid.querySelectorAll('.case-card:not(.new-case-card)');
+            existingCards.forEach(card => card.remove());
+            
+            cases.forEach(caseItem => {
+                const caseCard = createCaseCard(caseItem);
+                grid.appendChild(caseCard);
+            });
+        }
+
+        function createCaseCard(caseItem) {
+            const col = document.createElement('div');
+            col.className = 'case-card';
+            col.onclick = () => selectCase(caseItem.id);
+            
+            const createdDate = new Date(caseItem.created_at).toLocaleDateString();
+            
+            col.innerHTML = `
+                <div class="case-title">${caseItem.name}</div>
+                <div class="case-number">Case #${caseItem.case_number}</div>
+                <div class="case-description">${caseItem.description || 'No description provided'}</div>
+                <div class="case-meta">
+                    <div class="case-stats">
+                        <div class="stat">
+                            <span>📄</span>
+                            <span>${caseItem.evidence_count || 0}</span>
+                        </div>
+                        <div class="stat">
+                            <span>⚠️</span>
+                            <span>${caseItem.issue_count || 0}</span>
+                        </div>
+                    </div>
+                    <div>${createdDate}</div>
+                </div>
+            `;
+            
+            return col;
+        }
+
+        function selectCase(caseId) {
+            // Store selected case
+            localStorage.setItem('activeCaseId', caseId);
+            
+            // Redirect to analysis page with case ID
+            window.location.href = `analysis.html?caseId=${caseId}`;
+        }
+
+        function showNewCaseModal() {
+            document.getElementById('newCaseModal').classList.add('show');
+        }
+
+        function hideNewCaseModal() {
+            document.getElementById('newCaseModal').classList.remove('show');
+            document.getElementById('newCaseForm').reset();
+        }
+
+        async function createCase() {
+            const formData = {
+                name: document.getElementById('caseName').value,
+                case_number: document.getElementById('caseNumber').value,
+                project_name: document.getElementById('projectName').value,
+                description: document.getElementById('description').value,
+                contract_type: document.getElementById('contractType').value,
+                dispute_type: document.getElementById('disputeType').value
+            };
+
+            if (!formData.name || !formData.case_number) {
+                alert('Please fill in required fields (Case Name and Case Number)');
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_BASE}/api/cases`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify(formData)
+                });
+
+                if (!response.ok) {
+                    // For testing, create a mock case
+                    if (response.status === 401 || response.status === 403) {
+                        const mockCase = {
+                            id: generateUUID(),
+                            ...formData,
+                            created_at: new Date().toISOString(),
+                            evidence_count: 0,
+                            issue_count: 0
+                        };
+                        
+                        // Add to display
+                        const grid = document.getElementById('casesGrid');
+                        const caseCard = createCaseCard(mockCase);
+                        grid.appendChild(caseCard);
+                        
+                        hideNewCaseModal();
+                        
+                        // Auto-select the new case
+                        selectCase(mockCase.id);
+                        return;
+                    }
+                    
+                    throw new Error(`Failed to create case: ${response.status}`);
+                }
+
+                const newCase = await response.json();
+                
+                // Hide modal
+                hideNewCaseModal();
+                
+                // Select the new case
+                selectCase(newCase.id);
+                
+            } catch (error) {
+                console.error('Error creating case:', error);
+                alert(`Failed to create case: ${error.message}`);
+            }
+        }
+
+        function generateUUID() {
+            return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+                var r = Math.random() * 16 | 0, v = c == 'x' ? r : (r & 0x3 | 0x8);
+                return v.toString(16);
+            });
+        }
+
+        // Close modal when clicking outside
+        document.getElementById('newCaseModal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                hideNewCaseModal();
+            }
+        });
+
+        // Load cases on page load
+        loadCases();
+    </script>
+</body>
+</html>

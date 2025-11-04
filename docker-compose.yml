@@ -48,4 +48,6 @@ services:
     build: ./worker
     env_file: .env
     depends_on: [minio, postgres, redis, opensearch, tika]
-    volumes: ["./worker/worker_app:/code/worker_app"]
+    volumes:
+      - "./worker/worker_app:/code/worker_app"
+      - "./api/app:/code/app"

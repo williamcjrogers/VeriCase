@@ -4,7 +4,7 @@
 
 -- Favorites table for starring files
 CREATE TABLE IF NOT EXISTS favorites (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
     document_id UUID NOT NULL REFERENCES documents(id) ON DELETE CASCADE,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
@@ -16,7 +16,7 @@ CREATE INDEX IF NOT EXISTS idx_favorites_document ON favorites(document_id);
 
 -- Document versions table for version history
 CREATE TABLE IF NOT EXISTS document_versions (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     document_id UUID NOT NULL REFERENCES documents(id) ON DELETE CASCADE,
     version_number INTEGER NOT NULL,
     s3_key VARCHAR(2048) NOT NULL,

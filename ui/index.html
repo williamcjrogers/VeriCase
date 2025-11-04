@@ -3,7 +3,36 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>VeriCase Docs Workspace</title>
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  
+  <!-- Handle authentication token from URL and redirect to landing if needed -->
+  <script>
+    (function() {
+      // Check for auth token in URL (from website login)
+      const urlParams = new URLSearchParams(window.location.search);
+      const urlToken = urlParams.get('token');
+      
+      if (urlToken) {
+        // Save token to localStorage for authenticated access
+        localStorage.setItem('token', urlToken);
+        localStorage.setItem('jwt', urlToken); // Also save as jwt for compatibility
+        // Remove token from URL and reload
+        window.history.replaceState({}, document.title, window.location.pathname);
+        console.log('✅ Authentication token saved');
+      }
+      
+      // Redirect to landing page for main entry point if no specific view
+      if (window.location.search === '' || window.location.search === '?') {
+        const hasToken = localStorage.getItem('token') || localStorage.getItem('jwt');
+        if (!hasToken) {
+          window.location.href = 'landing.html';
+        }
+      }
+    })();
+  </script>
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0">
+  <title>VeriCase Docs Workspace v2.1</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -253,17 +282,18 @@
     }
 
     /* Split View Layout */
-    .workspace-view.split-mode {
+    .workspace-view.active.split-mode {
       display: grid;
-      grid-template-columns: 1fr 600px;
+      grid-template-columns: minmax(0, 1fr) clamp(320px, 38vw, 560px);
       gap: 1.5rem;
+      align-items: stretch;
     }
 
-    .workspace-view.split-mode .workspace-content {
+    .workspace-view.active.split-mode .workspace-content {
       min-width: 0;
     }
 
-    .workspace-view.split-mode .preview-panel {
+    .workspace-view.active.split-mode .preview-panel {
       display: flex;
       flex-direction: column;
       background: var(--surface);
@@ -271,6 +301,16 @@
       overflow: hidden;
       box-shadow: var(--shadow-md);
       border: 1px solid var(--border);
+    }
+
+    @media (max-width: 1100px) {
+      .workspace-view.active.split-mode {
+        grid-template-columns: 1fr;
+      }
+
+      .workspace-view.active.split-mode .preview-panel {
+        max-height: min(70vh, 540px);
+      }
     }
 
     .preview-panel-header {
@@ -431,6 +471,63 @@
       border-color: var(--accent);
       transform: translateY(-4px);
       box-shadow: 0 12px 32px rgba(37, 99, 235, 0.2);
+    }
+
+    /* Private Files Tile - Blue Theme */
+    .workspace-tile.tile-private {
+      background: linear-gradient(135deg, rgba(59, 130, 246, 0.08) 0%, rgba(96, 165, 250, 0.05) 100%);
+      border-color: rgba(59, 130, 246, 0.3);
+    }
+
+    .workspace-tile.tile-private::before {
+      background: linear-gradient(90deg, #3b82f6 0%, #2563eb 100%);
+    }
+
+    .workspace-tile.tile-private:hover {
+      border-color: #3b82f6;
+      box-shadow: 0 12px 32px rgba(59, 130, 246, 0.25);
+    }
+
+    .workspace-tile.tile-private .workspace-tile-count {
+      color: #2563eb;
+    }
+
+    /* Shared Workspace Tile - Green Theme */
+    .workspace-tile.tile-shared {
+      background: linear-gradient(135deg, rgba(16, 185, 129, 0.08) 0%, rgba(52, 211, 153, 0.05) 100%);
+      border-color: rgba(16, 185, 129, 0.3);
+    }
+
+    .workspace-tile.tile-shared::before {
+      background: linear-gradient(90deg, #10b981 0%, #059669 100%);
+    }
+
+    .workspace-tile.tile-shared:hover {
+      border-color: #10b981;
+      box-shadow: 0 12px 32px rgba(16, 185, 129, 0.25);
+    }
+
+    .workspace-tile.tile-shared .workspace-tile-count {
+      color: #059669;
+    }
+
+    /* Shared With Me Tile - Purple Theme */
+    .workspace-tile.tile-shared-with-me {
+      background: linear-gradient(135deg, rgba(139, 92, 246, 0.08) 0%, rgba(167, 139, 250, 0.05) 100%);
+      border-color: rgba(139, 92, 246, 0.3);
+    }
+
+    .workspace-tile.tile-shared-with-me::before {
+      background: linear-gradient(90deg, #8b5cf6 0%, #7c3aed 100%);
+    }
+
+    .workspace-tile.tile-shared-with-me:hover {
+      border-color: #8b5cf6;
+      box-shadow: 0 12px 32px rgba(139, 92, 246, 0.25);
+    }
+
+    .workspace-tile.tile-shared-with-me .workspace-tile-count {
+      color: #7c3aed;
     }
 
     .workspace-tile-icon {
@@ -1362,10 +1459,11 @@
           </svg>
           Copilot Hub
         </button>
-        <button>🕘 Recent</button>
-        <button>⭐ Favorites</button>
-        <button>🔗 Links</button>
-        <button>🗑 Trash</button>
+        <button id="nav-correspondence">✉️ Correspondence</button>
+        <button id="nav-recent">🕘 Recent</button>
+        <button id="nav-favorites">⭐ Favorites</button>
+        <button id="nav-links">🔗 Links</button>
+        <button id="nav-trash">🗑 Trash</button>
       </div>
 
       <div class="nav-section" style="padding-bottom:0;">Folders</div>
@@ -1375,6 +1473,9 @@
           <button id="new-folder-btn" title="New folder">+</button>
           <button id="tree-refresh" title="Refresh folders">⟳</button>
         </div>
+      </div>
+      <div style="background: #10b981; color: white; padding: 0.5rem; margin: 0.5rem 1.2rem; border-radius: 4px; font-size: 0.7rem; text-align: center; font-weight: 700;">
+        🔴 SPLIT VIEW ENABLED v2.0
       </div>
       <div class="tree" id="path-tree"></div>
     </aside>
@@ -1405,21 +1506,21 @@
         <div>
           <h2 style="margin: 0 0 1.5rem; font-size: 1.4rem;">Your Workspaces</h2>
           <div class="workspace-tiles">
-            <div class="workspace-tile" id="tile-my-files">
-              <div class="workspace-tile-icon">📁</div>
+            <div class="workspace-tile tile-private" id="tile-my-files">
+              <div class="workspace-tile-icon">🔒</div>
               <h3 class="workspace-tile-title">My Private Files</h3>
               <p class="workspace-tile-description">Access your personal documents and folders</p>
               <div class="workspace-tile-count" id="private-count">0 documents</div>
             </div>
 
-            <div class="workspace-tile" id="tile-shared-workspace">
-              <div class="workspace-tile-icon">🏢</div>
+            <div class="workspace-tile tile-shared" id="tile-shared-workspace">
+              <div class="workspace-tile-icon">🤝</div>
               <h3 class="workspace-tile-title">Shared Workspace</h3>
               <p class="workspace-tile-description">Collaborate on team documents and projects</p>
               <div class="workspace-tile-count" id="shared-workspace-count">0 documents</div>
             </div>
 
-            <div class="workspace-tile" id="tile-shared-with-me">
+            <div class="workspace-tile tile-shared-with-me" id="tile-shared-with-me">
               <div class="workspace-tile-icon">📩</div>
               <h3 class="workspace-tile-title">Shared With Me</h3>
               <p class="workspace-tile-description">View documents others have shared with you</p>
@@ -1678,12 +1779,12 @@
 
   <script>
     const appRoot = document.body;
-    const base = window.location.origin.replace(/\/$/, '');
+    const base = 'http://localhost:8010';
 
     const emailInput = document.getElementById('email');
     const pwdInput = document.getElementById('pwd');
-    if (emailInput && !emailInput.value) emailInput.value = `user-${Date.now()}@example.com`;
-    if (pwdInput && !pwdInput.value) pwdInput.value = 'StrongPass123!';
+    if (emailInput && !emailInput.value) emailInput.value = 'william.rogers@quantumcommercialsolutions.com';
+    if (pwdInput && !pwdInput.value) pwdInput.value = 'password';
 
     const tokenInput = document.getElementById('token');
     const advancedToggle = document.getElementById('advancedToggle');
@@ -2226,14 +2327,15 @@
     async function loadPaths() {
       if (!token || !treeContainer) return;
       try {
-        const res = await api('/documents/paths');
+        const res = await api('/folders');
+        // Extract paths from folder objects
+        const allPaths = (res.folders || []).map(f => f.path);
         
         // Admin view: If user is william.rogers@quantumcommercialsolutions.com, they see ALL folders
         const isAdmin = currentUserEmail === 'william.rogers@quantumcommercialsolutions.com';
         
         if (isAdmin) {
-          // Admin sees all folders across the system
-          const allPaths = res.paths || [];
+          // Admin sees all folders across the system (already extracted above)
           
           // Add visual indicator for admin view
           if (treeContainer.parentElement && !treeContainer.parentElement.querySelector('.admin-badge')) {
@@ -2246,8 +2348,8 @@
           
           renderPaths(allPaths);
         } else {
-          // Regular users see only their folders
-          renderPaths(res.paths || []);
+          // Regular users see only their folders (already extracted above)
+          renderPaths(allPaths);
         }
       } catch (err) {
         console.warn('Unable to load paths', err);
@@ -2258,15 +2360,15 @@
     async function loadDashboardStats() {
       try {
         // Load total documents
-        const allDocs = await api('/documents?limit=1');
-        document.getElementById('stat-total-docs').textContent = allDocs.total || 0;
-        document.getElementById('private-count').textContent = `${allDocs.total || 0} documents`;
+        const allDocs = await api('/documents?limit=1000');
+        const totalCount = allDocs.total || 0;
+        document.getElementById('stat-total-docs').textContent = totalCount;
         
         // Load shared with me count
         try {
-          const sharedDocs = await api('/documents/shared-with-me');
-          document.getElementById('stat-shared-docs').textContent = sharedDocs.length || 0;
-          document.getElementById('shared-with-me-count').textContent = `${sharedDocs.length || 0} documents`;
+          const sharedWithMeDocs = await api('/documents/shared-with-me');
+          document.getElementById('stat-shared-docs').textContent = sharedWithMeDocs.length || 0;
+          document.getElementById('shared-with-me-count').textContent = `${sharedWithMeDocs.length || 0} documents`;
         } catch (err) {
           document.getElementById('stat-shared-docs').textContent = '0';
           document.getElementById('shared-with-me-count').textContent = '0 documents';
@@ -2275,15 +2377,32 @@
         // Load recent uploads (last 7 days)
         const sevenDaysAgo = new Date();
         sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
-        const recentDocs = await api('/documents?limit=100');
-        const recentCount = recentDocs.items.filter(doc => {
+        const recentCount = allDocs.items.filter(doc => {
           const created = new Date(doc.created_at);
           return created > sevenDaysAgo;
         }).length;
         document.getElementById('stat-recent-uploads').textContent = recentCount;
         
-        // Shared workspace count (for now, same as total)
-        document.getElementById('shared-workspace-count').textContent = `${allDocs.total || 0} documents`;
+        // Calculate private vs shared document counts
+        let privateCount = 0;
+        let sharedCount = 0;
+        
+        const docs = allDocs.items || [];
+        for (const doc of docs) {
+          try {
+            const shares = await api(`/documents/${doc.id}/shares`);
+            if (shares && shares.length > 0) {
+              sharedCount++;
+            } else {
+              privateCount++;
+            }
+          } catch (err) {
+            privateCount++; // Default to private if error
+          }
+        }
+        
+        document.getElementById('private-count').textContent = `${privateCount} documents`;
+        document.getElementById('shared-workspace-count').textContent = `${sharedCount} documents`;
       } catch (err) {
         console.error('Failed to load dashboard stats:', err);
       }
@@ -2425,16 +2544,28 @@
 
     function attachRowActions() {
       document.querySelectorAll('.action-preview').forEach(btn => {
-        btn.addEventListener('click', () => handlePreview(btn.dataset.id));
+        btn.addEventListener('click', (e) => {
+          e.stopPropagation(); // Prevent row click
+          handlePreview(btn.dataset.id, true); // Force split view
+        });
       });
       document.querySelectorAll('.action-ai').forEach(btn => {
-        btn.addEventListener('click', () => handleAIClassify(btn.dataset.id));
+        btn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          handleAIClassify(btn.dataset.id);
+        });
       });
       document.querySelectorAll('.action-share').forEach(btn => {
-        btn.addEventListener('click', () => handleShare(btn.dataset.id));
+        btn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          handleShare(btn.dataset.id);
+        });
       });
       document.querySelectorAll('.action-delete').forEach(btn => {
-        btn.addEventListener('click', () => handleDelete(btn.dataset.id));
+        btn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          handleDelete(btn.dataset.id);
+        });
       });
     }
 
@@ -2487,44 +2618,66 @@ ${insights.summary || 'No summary available'}
     }
 
     function handlePreview(id, forceSplit = false) {
+      console.log('🔍 handlePreview called - ID:', id, 'forceSplit:', forceSplit);
+      
       if (!id) { alert('Select a document first.'); return; }
       const doc = visibleDocs.find(d => d.id === id);
       if (!doc) { alert('Document not found.'); return; }
       
+      console.log('📄 Document found:', doc.filename);
+      
       api('/documents/' + id + '/signed_url')
         .then(r => {
-          const url = `file-viewer.html?file=${encodeURIComponent(r.url)}&filename=${encodeURIComponent(r.filename)}&type=${encodeURIComponent(r.content_type || '')}`;
+          console.log('🔗 Got signed URL response:', r);
+          console.log('📍 URL:', r.url);
+          console.log('📁 Filename:', r.filename);
           
-          // Use split view for single clicks, modal for toolbar button
+          // For split view, load the file directly (not via file-viewer.html)
+          // For modal, use the full viewer with toolbar
           if (forceSplit) {
-            openSplitPreview(url, doc.filename);
+            console.log('➡️ Opening in SPLIT view');
+            openSplitPreview(r.url, doc.filename);
           } else {
-            openPreviewModal(url);
+            console.log('➡️ Opening in MODAL');
+            const viewerUrl = `file-viewer.html?file=${encodeURIComponent(r.url)}&filename=${encodeURIComponent(r.filename)}&type=${encodeURIComponent(r.content_type || '')}`;
+            openPreviewModal(viewerUrl);
           }
         })
-        .catch(err => alert(err.message));
+        .catch(err => {
+          console.error('❌ Preview error:', err);
+          alert(err.message);
+        });
     }
 
     // Split view preview functions
     function openSplitPreview(url, filename) {
+      console.log('[split-view] opening preview', filename, url);
+
       const workspaceView = document.getElementById('workspace-view');
       const splitPanel = document.getElementById('split-preview-panel');
       const previewFrame = document.getElementById('split-preview-frame');
       const emptyState = document.getElementById('preview-empty-state');
       const filenameEl = document.getElementById('preview-panel-filename');
-      
-      if (!workspaceView || !splitPanel || !previewFrame) return;
-      
-      // Enable split mode
+
+      if (!workspaceView || !splitPanel || !previewFrame) {
+        console.error('[split-view] required elements missing');
+        return;
+      }
+
+      if (!workspaceView.classList.contains('active')) {
+        showWorkspace();
+      }
+
       workspaceView.classList.add('split-mode');
       splitPanel.style.display = 'flex';
-      
-      // Load content
-      previewFrame.src = url;
-      previewFrame.style.display = 'block';
-      emptyState.style.display = 'none';
-      
+
       if (filenameEl) filenameEl.textContent = filename || 'Preview';
+      if (emptyState) emptyState.style.display = 'none';
+
+      previewFrame.style.display = 'block';
+      // Use file-viewer.html for proper file type handling
+      const viewerUrl = `file-viewer.html?file=${encodeURIComponent(url)}&filename=${encodeURIComponent(filename)}&type=application/pdf`;
+      previewFrame.src = viewerUrl;
     }
 
     function closeSplitPreview() {
@@ -2532,17 +2685,15 @@ ${insights.summary || 'No summary available'}
       const splitPanel = document.getElementById('split-preview-panel');
       const previewFrame = document.getElementById('split-preview-frame');
       const emptyState = document.getElementById('preview-empty-state');
-      
+
       if (!workspaceView || !splitPanel || !previewFrame) return;
-      
-      // Disable split mode
+
       workspaceView.classList.remove('split-mode');
       splitPanel.style.display = 'none';
-      
-      // Clear content
-      previewFrame.src = '';
+
       previewFrame.style.display = 'none';
-      emptyState.style.display = 'flex';
+      previewFrame.removeAttribute('src');
+      if (emptyState) emptyState.style.display = 'flex';
     }
 
     function openPreviewModal(url) {
@@ -3077,7 +3228,16 @@ ${insights.summary || 'No summary available'}
         setActivePath(path);
         await loadDocuments(true);
       } catch (err) {
-        alert(`Failed to create folder: ${err.message}`);
+        // Better error handling for "already exists"
+        if (err.message.includes('409') || err.message.includes('already exists')) {
+          showToast(`Folder "${path}" already exists`, 'error');
+          // Still close modal and navigate to existing folder
+          closeNewFolderModal();
+          setActivePath(path);
+          await loadDocuments(true);
+        } else {
+          alert(`Failed to create folder: ${err.message}`);
+        }
       }
     }
 
@@ -3581,6 +3741,115 @@ ${insights.summary || 'No summary available'}
       });
     }
 
+    // Correspondence navigation
+    const navCorrespondence = document.getElementById('nav-correspondence');
+    if (navCorrespondence) {
+      navCorrespondence.addEventListener('click', () => {
+        window.location.href = 'correspondence-enterprise.html';
+      });
+    }
+
+    // Recent navigation
+    const navRecent = document.getElementById('nav-recent');
+    if (navRecent) {
+      navRecent.addEventListener('click', async () => {
+        document.querySelectorAll('.nav-list button').forEach(btn => btn.classList.remove('active'));
+        navRecent.classList.add('active');
+        showWorkspace();
+        
+        if (folderTitleEl) folderTitleEl.textContent = 'Recent Documents';
+        if (breadcrumbsEl) breadcrumbsEl.innerHTML = '';
+        if (libraryStatusEl) libraryStatusEl.textContent = 'Loading recent documents...';
+        
+        try {
+          const recentDocs = await api('/documents/recent?limit=50');
+          if (libraryStatusEl) {
+            libraryStatusEl.textContent = recentDocs.total 
+              ? `${recentDocs.total} recent documents`
+              : 'No recent documents';
+          }
+          renderDocumentRows(recentDocs.items || []);
+        } catch (err) {
+          console.error('Failed to load recent:', err);
+          if (libraryStatusEl) libraryStatusEl.textContent = 'Failed to load recent documents';
+        }
+      });
+    }
+
+    // Favorites navigation
+    const navFavorites = document.getElementById('nav-favorites');
+    if (navFavorites) {
+      navFavorites.addEventListener('click', async () => {
+        document.querySelectorAll('.nav-list button').forEach(btn => btn.classList.remove('active'));
+        navFavorites.classList.add('active');
+        showWorkspace();
+        
+        if (folderTitleEl) folderTitleEl.textContent = 'Favorites';
+        if (breadcrumbsEl) breadcrumbsEl.innerHTML = '';
+        if (libraryStatusEl) libraryStatusEl.textContent = 'Loading favorites...';
+        
+        try {
+          const favDocs = await api('/favorites');
+          if (libraryStatusEl) {
+            libraryStatusEl.textContent = favDocs.items?.length 
+              ? `${favDocs.items.length} favorites`
+              : 'No favorites yet';
+          }
+          
+          // Transform favorites to document format
+          const docs = (favDocs.items || []).map(fav => ({
+            id: fav.document_id,
+            filename: fav.filename,
+            path: fav.path,
+            status: 'READY',
+            size: fav.size,
+            content_type: fav.content_type,
+            title: fav.title,
+            created_at: fav.created_at
+          }));
+          
+          renderDocumentRows(docs);
+        } catch (err) {
+          console.error('Failed to load favorites:', err);
+          if (libraryStatusEl) libraryStatusEl.textContent = 'Failed to load favorites';
+        }
+      });
+    }
+
+    // Links navigation (share links)
+    const navLinks = document.getElementById('nav-links');
+    if (navLinks) {
+      navLinks.addEventListener('click', () => {
+        document.querySelectorAll('.nav-list button').forEach(btn => btn.classList.remove('active'));
+        navLinks.classList.add('active');
+        showWorkspace();
+        
+        if (folderTitleEl) folderTitleEl.textContent = 'Share Links';
+        if (breadcrumbsEl) breadcrumbsEl.innerHTML = '';
+        if (libraryStatusEl) libraryStatusEl.textContent = 'Share links feature coming soon';
+        if (docTableBody) docTableBody.innerHTML = '';
+        docTableEmpty.style.display = 'block';
+        docTableEmpty.textContent = 'Share links management coming soon';
+      });
+    }
+
+    // Trash navigation
+    const navTrash = document.getElementById('nav-trash');
+    if (navTrash) {
+      navTrash.addEventListener('click', () => {
+        document.querySelectorAll('.nav-list button').forEach(btn => btn.classList.remove('active'));
+        navTrash.classList.add('active');
+        showWorkspace();
+        
+        if (folderTitleEl) folderTitleEl.textContent = 'Trash';
+        if (breadcrumbsEl) breadcrumbsEl.innerHTML = '';
+        if (libraryStatusEl) libraryStatusEl.textContent = 'Trash feature coming soon';
+        if (docTableBody) docTableBody.innerHTML = '';
+        docTableEmpty.style.display = 'block';
+        docTableEmpty.textContent = 'Trash / soft delete feature coming soon';
+      });
+    }
+
     // ===== DASHBOARD TILE HANDLERS =====
     
     const tileMyFiles = document.getElementById('tile-my-files');
@@ -3589,34 +3858,503 @@ ${insights.summary || 'No summary available'}
     const dashboardSearchInput = document.getElementById('dashboard-search-input');
     const dashboardSearchBtn = document.getElementById('dashboard-search-btn');
 
+    // Load documents with sharing status check
+    async function loadDocumentsWithShareStatus() {
+      try {
+        const res = await api('/documents?limit=1000'); // Get all docs
+        const docs = res.items || [];
+        
+        // Check sharing status for each document
+        const docsWithShareStatus = await Promise.all(
+          docs.map(async (doc) => {
+            try {
+              const shares = await api(`/documents/${doc.id}/shares`);
+              doc.is_shared = shares && shares.length > 0;
+              doc.share_count = shares ? shares.length : 0;
+            } catch (err) {
+              doc.is_shared = false;
+              doc.share_count = 0;
+            }
+            return doc;
+          })
+        );
+        
+        return docsWithShareStatus;
+      } catch (err) {
+        console.error('Failed to load documents with share status:', err);
+        return [];
+      }
+    }
+
+    // Dashboard inline file browser
+    async function showDashboardFileBrowser(filterPath = '', filterType = 'all') {
+      const dashboardView = document.getElementById('dashboard-view');
+      if (!dashboardView) return;
+      
+      console.log('🎯 showDashboardFileBrowser called - filterPath:', filterPath, 'filterType:', filterType);
+      
+      // Smoothly fade out dashboard content sections instead of hiding
+      const dashboardWelcome = dashboardView.querySelector('.dashboard-welcome');
+      const workspaceTilesSection = dashboardWelcome?.nextElementSibling;
+      const dashboardSearch = document.querySelector('.dashboard-search');
+      const recentActivity = document.querySelector('.recent-activity');
+      
+      // Add smooth transitions
+      [dashboardWelcome, workspaceTilesSection, dashboardSearch, recentActivity].forEach(el => {
+        if (el) {
+          el.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
+          el.style.opacity = '0.3';
+          el.style.transform = 'scale(0.95)';
+          el.style.pointerEvents = 'none';
+        }
+      });
+      
+      // Load folders from API using the /folders endpoint (includes empty folders)
+      let allFolders = [];
+      try {
+        const foldersRes = await api('/folders');
+        allFolders = (foldersRes.folders || []).map(f => f.path);
+        console.log('📁 Loaded folders:', allFolders);
+      } catch (err) {
+        console.error('❌ Failed to load folders:', err);
+      }
+      
+      // Create or show inline browser
+      let inlineBrowser = document.getElementById('dashboard-inline-browser');
+      if (!inlineBrowser) {
+        inlineBrowser = document.createElement('div');
+        inlineBrowser.id = 'dashboard-inline-browser';
+        inlineBrowser.style.cssText = 'position: fixed; inset: 0; display: flex; align-items: center; justify-content: center; background: rgba(15, 23, 42, 0.3); backdrop-filter: blur(8px); z-index: 50; padding: 2rem; opacity: 0; transition: opacity 0.3s ease;';
+        
+        inlineBrowser.innerHTML = `
+          <div style="width: 90%; max-width: 1200px; height: 85vh; background: rgba(255,255,255,0.98); border-radius: var(--radius-lg); box-shadow: 0 20px 60px rgba(15,23,42,0.3); display: flex; flex-direction: column; transform: scale(0.9); transition: transform 0.3s ease;">
+            <div style="padding: 1.5rem; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; background: var(--subsurface); border-radius: var(--radius-lg) var(--radius-lg) 0 0;">
+              <div>
+                <h2 id="inline-folder-title" style="margin: 0; font-size: 1.3rem; font-weight: 700;">All Files</h2>
+                <p id="inline-status" style="margin: 0.25rem 0 0; color: var(--muted); font-size: 0.85rem;">Loading...</p>
+              </div>
+              <div style="display: flex; gap: 0.5rem;">
+                <button id="inline-upload" style="background: var(--accent); color: white; border: none; padding: 0.5rem 1rem; border-radius: 6px; cursor: pointer; font-weight: 600;">+ Upload</button>
+                <button id="inline-new-folder" style="background: var(--accent); color: white; border: none; padding: 0.5rem 1rem; border-radius: 6px; cursor: pointer; font-weight: 600;">+ Folder</button>
+                <button id="inline-close" style="background: transparent; border: 1px solid var(--border); color: var(--muted-strong); padding: 0.5rem 1rem; border-radius: 6px; cursor: pointer; font-weight: 600;">✕ Close</button>
+              </div>
+            </div>
+            <div style="flex: 1; display: grid; grid-template-columns: 240px 1fr; gap: 0; overflow: hidden;">
+              <div style="border-right: 1px solid var(--border); padding: 1.5rem; overflow-y: auto; background: var(--subsurface);">
+                <h3 style="margin: 0 0 1rem; font-size: 0.9rem; font-weight: 600; color: var(--muted-strong);">FOLDERS</h3>
+                <div id="inline-tree"></div>
+              </div>
+              <div style="padding: 1.5rem; overflow-y: auto; background: white;">
+                <div id="inline-files"></div>
+              </div>
+            </div>
+          </div>
+        `;
+        
+        dashboardView.appendChild(inlineBrowser);
+        
+        // Event listeners
+        document.getElementById('inline-close').addEventListener('click', () => {
+          // Fade out the modal
+          inlineBrowser.style.opacity = '0';
+          const innerCard = inlineBrowser.querySelector('div[style*="transform"]');
+          if (innerCard) innerCard.style.transform = 'scale(0.9)';
+          
+          setTimeout(() => {
+            inlineBrowser.style.display = 'none';
+          }, 300);
+          
+          // Restore dashboard content with smooth transition
+          [dashboardWelcome, workspaceTilesSection, dashboardSearch, recentActivity].forEach(el => {
+            if (el) {
+              el.style.display = 'block';
+              el.style.opacity = '1';
+              el.style.transform = 'scale(1)';
+              el.style.pointerEvents = 'auto';
+            }
+          });
+        });
+        
+        document.getElementById('inline-upload').addEventListener('click', () => {
+          // Pre-fill destination with current folder path
+          if (pathInput) pathInput.value = currentPath || '';
+          if (uploadModal) uploadModal.classList.remove('hidden');
+        });
+        
+        document.getElementById('inline-new-folder').addEventListener('click', () => {
+          openNewFolderModal(currentPath);
+        });
+      }
+      
+      // Fade in the modal
+      inlineBrowser.style.display = 'flex';
+      setTimeout(() => {
+        inlineBrowser.style.opacity = '1';
+        const innerCard = inlineBrowser.querySelector('div[style*="transform"]');
+        if (innerCard) innerCard.style.transform = 'scale(1)';
+      }, 10);
+      
+      // Set current path - if filtering and no folders exist yet, still set the path
+      currentPath = filterPath;
+      if (currentPath) {
+        expandAncestors(currentPath);
+        expandedPaths.add(currentPath);
+      }
+      
+      // Render tree in inline browser
+      const inlineTree = document.getElementById('inline-tree');
+      if (inlineTree) {
+        console.log('🌳 Rendering inline tree with folders:', allFolders);
+        inlineTree.innerHTML = '';
+        
+        // Add root item
+        const rootItem = document.createElement('div');
+        rootItem.className = 'tree-item';
+        rootItem.dataset.path = '';
+        rootItem.textContent = '📁 All Files';
+        rootItem.style.padding = '0.5rem';
+        rootItem.addEventListener('click', () => {
+          currentPath = '';
+          loadInlineDocuments();
+          inlineTree.querySelectorAll('.tree-item').forEach(item => item.classList.remove('active'));
+          rootItem.classList.add('active');
+        });
+        inlineTree.appendChild(rootItem);
+        
+        // Filter folders based on filterPath
+        const filteredFolders = allFolders.filter(p => filterPath ? p.startsWith(filterPath) : true);
+        console.log('📂 Filtered folders:', filteredFolders);
+        
+        if (filteredFolders.length > 0) {
+          // Build tree
+          const tree = buildTree(filteredFolders);
+          console.log('🌲 Built tree structure:', tree);
+          Object.keys(tree).sort().forEach(name => {
+            const node = createInlineTreeNode(name, tree[name]);
+            inlineTree.appendChild(node);
+          });
+        } else {
+          const emptyMsg = document.createElement('p');
+          emptyMsg.style.cssText = 'color: var(--muted); padding: 1rem; text-align: center; font-size: 0.85rem;';
+          emptyMsg.textContent = 'No folders yet. Create one with the + button!';
+          inlineTree.appendChild(emptyMsg);
+        }
+        
+        // Set active
+        inlineTree.querySelectorAll('.tree-item').forEach(item => {
+          item.classList.toggle('active', item.dataset.path === currentPath);
+        });
+      }
+      
+      // Load documents
+      await loadInlineDocuments();
+    }
+    
+    function createInlineTreeNode(label, node, depth = 0) {
+      const wrapper = document.createElement('div');
+      const item = document.createElement('div');
+      item.className = 'tree-item';
+      item.dataset.path = node.path;
+      item.style.paddingLeft = `${depth * 12 + 6}px`;
+      item.style.padding = '0.45rem 0.55rem';
+      item.style.paddingLeft = `${depth * 12 + 6}px`;
+
+      const icon = document.createElement('span');
+      icon.textContent = '📁';
+      icon.style.marginRight = '0.5rem';
+
+      const text = document.createElement('span');
+      text.textContent = label;
+
+      item.append(icon, text);
+      item.addEventListener('click', () => {
+        currentPath = node.path;
+        loadInlineDocuments();
+        document.querySelectorAll('#inline-tree .tree-item').forEach(i => i.classList.remove('active'));
+        item.classList.add('active');
+      });
+
+      wrapper.appendChild(item);
+
+      const children = Object.keys(node.children).sort();
+      if (children.length > 0) {
+        const container = document.createElement('div');
+        container.style.marginLeft = '12px';
+        children.forEach(child => {
+          container.appendChild(createInlineTreeNode(child, node.children[child], depth + 1));
+        });
+        wrapper.appendChild(container);
+      }
+
+      return wrapper;
+    }
+    
+    async function loadInlineDocuments() {
+      const inlineFiles = document.getElementById('inline-files');
+      const inlineStatus = document.getElementById('inline-status');
+      const inlineTitle = document.getElementById('inline-folder-title');
+      
+      if (!inlineFiles || !token) return;
+      
+      if (inlineStatus) inlineStatus.textContent = 'Loading...';
+      if (inlineTitle) inlineTitle.textContent = currentPath || 'All Files';
+      
+      try {
+        const params = new URLSearchParams({ limit: 100 });
+        if (currentPath) params.set('path_prefix', currentPath);
+        
+        const res = await api('/documents?' + params.toString());
+        
+        if (inlineStatus) {
+          inlineStatus.textContent = res.total ? `${res.total} documents` : 'No documents';
+        }
+        
+        // CRITICAL FIX: Update visibleDocs so preview works
+        visibleDocs = res.items || [];
+        
+        inlineFiles.innerHTML = '';
+        
+        if (!res.items || res.items.length === 0) {
+          inlineFiles.innerHTML = '<p style="color: var(--muted); text-align: center; padding: 2rem;">No documents in this folder</p>';
+          return;
+        }
+        
+        res.items.forEach(doc => {
+          const fileCard = document.createElement('div');
+          fileCard.style.cssText = 'border: 1px solid var(--border); border-radius: 8px; padding: 1rem; cursor: pointer; transition: all 0.2s ease; display: flex; align-items: center; gap: 1rem;';
+          fileCard.addEventListener('mouseenter', () => {
+            fileCard.style.background = 'var(--subsurface)';
+            fileCard.style.borderColor = 'var(--accent)';
+          });
+          fileCard.addEventListener('mouseleave', () => {
+            fileCard.style.background = 'white';
+            fileCard.style.borderColor = 'var(--border)';
+          });
+          
+          const icon = getFileIcon(doc.filename);
+          fileCard.innerHTML = `
+            <span style="font-size: 2rem;">${icon}</span>
+            <div style="flex: 1; min-width: 0;">
+              <div style="font-weight: 600; margin-bottom: 0.25rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${doc.filename}</div>
+              <div style="font-size: 0.85rem; color: var(--muted);">${formatBytes(doc.size)} • ${new Date(doc.created_at).toLocaleDateString()}</div>
+            </div>
+            <button class="inline-preview-btn" data-id="${doc.id}" style="background: var(--accent); color: white; border: none; padding: 0.5rem 1rem; border-radius: 6px; cursor: pointer; font-weight: 600;">Preview</button>
+          `;
+          
+          fileCard.addEventListener('click', (e) => {
+            if (!e.target.classList.contains('inline-preview-btn')) {
+              handlePreview(doc.id, false); // Open in modal, not split view
+            }
+          });
+          
+          inlineFiles.appendChild(fileCard);
+        });
+        
+        // Attach preview button handlers
+        document.querySelectorAll('.inline-preview-btn').forEach(btn => {
+          btn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            handlePreview(btn.dataset.id, false); // Open in modal, not split view
+          });
+        });
+        
+      } catch (err) {
+        if (inlineStatus) inlineStatus.textContent = 'Failed to load';
+        inlineFiles.innerHTML = '<p style="color: var(--danger); text-align: center; padding: 2rem;">Failed to load documents</p>';
+      }
+    }
+
     if (tileMyFiles) {
-      tileMyFiles.addEventListener('click', () => {
+      tileMyFiles.addEventListener('click', async () => {
+        // Show ONLY private (unshared) documents
         showWorkspace();
+        
         document.querySelectorAll('.nav-list button').forEach(btn => btn.classList.remove('active'));
         if (navFiles) navFiles.classList.add('active');
-        // Filter to show only documents in "private/" path
-        currentPath = 'private';
-        expandedPaths.add('private');
-        loadDocuments(true);
+        
+        if (folderTitleEl) folderTitleEl.textContent = 'My Private Files';
+        if (breadcrumbsEl) breadcrumbsEl.innerHTML = '';
+        if (libraryStatusEl) libraryStatusEl.textContent = 'Loading private documents...';
+        
+        try {
+          // Load all documents
+          const allDocs = await api('/documents?limit=1000');
+          const docs = allDocs.items || [];
+          
+          // Check which ones are shared
+          const privateDocs = [];
+          for (const doc of docs) {
+            try {
+              const shares = await api(`/documents/${doc.id}/shares`);
+              if (!shares || shares.length === 0) {
+                privateDocs.push(doc);
+              }
+            } catch (err) {
+              privateDocs.push(doc); // If error checking shares, assume private
+            }
+          }
+          
+          if (libraryStatusEl) {
+            libraryStatusEl.textContent = privateDocs.length 
+              ? `${privateDocs.length} private documents (not shared with anyone)`
+              : 'No private documents';
+          }
+          
+          visibleDocs = privateDocs;
+          renderDocumentRows(privateDocs);
+        } catch (err) {
+          console.error('Failed to load private documents:', err);
+          if (libraryStatusEl) libraryStatusEl.textContent = 'Failed to load documents';
+        }
       });
     }
 
     if (tileSharedWorkspace) {
-      tileSharedWorkspace.addEventListener('click', () => {
+      tileSharedWorkspace.addEventListener('click', async () => {
+        // Show ONLY shared documents (documents you've shared with others)
         showWorkspace();
+        
         document.querySelectorAll('.nav-list button').forEach(btn => btn.classList.remove('active'));
         if (navFiles) navFiles.classList.add('active');
-        // Filter to show only documents in "shared/" path
-        currentPath = 'shared';
-        expandedPaths.add('shared');
-        loadDocuments(true);
+        
+        if (folderTitleEl) folderTitleEl.textContent = 'Shared Workspace';
+        if (breadcrumbsEl) breadcrumbsEl.innerHTML = '';
+        if (libraryStatusEl) libraryStatusEl.textContent = 'Loading shared documents...';
+        
+        try {
+          // Load all documents
+          const allDocs = await api('/documents?limit=1000');
+          const docs = allDocs.items || [];
+          
+          // Check which ones are shared
+          const sharedDocs = [];
+          for (const doc of docs) {
+            try {
+              const shares = await api(`/documents/${doc.id}/shares`);
+              if (shares && shares.length > 0) {
+                doc.is_shared = true;
+                doc.share_count = shares.length;
+                sharedDocs.push(doc);
+              }
+            } catch (err) {
+              // Ignore errors
+            }
+          }
+          
+          if (libraryStatusEl) {
+            libraryStatusEl.textContent = sharedDocs.length 
+              ? `${sharedDocs.length} documents shared with others`
+              : 'No shared documents';
+          }
+          
+          visibleDocs = sharedDocs;
+          renderDocumentRows(sharedDocs);
+        } catch (err) {
+          console.error('Failed to load shared documents:', err);
+          if (libraryStatusEl) libraryStatusEl.textContent = 'Failed to load documents';
+        }
       });
     }
 
     if (tileSharedWithMe) {
-      tileSharedWithMe.addEventListener('click', () => {
-        showWorkspace();
-        loadSharedWithMe();
+      tileSharedWithMe.addEventListener('click', async () => {
+        const dashboardView = document.getElementById('dashboard-view');
+        if (!dashboardView) return;
+        
+        console.log('🎯 Shared With Me tile clicked');
+        
+        // Show inline browser for shared documents
+        let inlineBrowser = document.getElementById('dashboard-inline-browser');
+        if (!inlineBrowser) {
+          // Create the browser if it doesn't exist
+          await showDashboardFileBrowser('');
+          inlineBrowser = document.getElementById('dashboard-inline-browser');
+        }
+        
+        if (inlineBrowser) {
+          inlineBrowser.style.display = 'grid';
+          
+          // Load shared documents into the inline browser
+          const inlineFiles = document.getElementById('inline-files');
+          const inlineStatus = document.getElementById('inline-status');
+          const inlineTitle = document.getElementById('inline-folder-title');
+          const inlineTree = document.getElementById('inline-tree');
+          
+          if (inlineTree) inlineTree.innerHTML = '<p style="color: var(--muted); padding: 1rem; text-align: center; font-size: 0.85rem;">Shared documents only</p>';
+          if (inlineTitle) inlineTitle.textContent = 'Shared With Me';
+          if (inlineStatus) inlineStatus.textContent = 'Loading...';
+          
+          try {
+            const sharedDocs = await api('/documents/shared-with-me');
+            
+            if (inlineStatus) {
+              inlineStatus.textContent = sharedDocs.length 
+                ? `${sharedDocs.length} documents`
+                : 'No documents';
+            }
+            
+            // CRITICAL FIX: Update visibleDocs so preview works for shared docs
+            visibleDocs = sharedDocs || [];
+            
+            if (inlineFiles) {
+              inlineFiles.innerHTML = '';
+              
+              if (!sharedDocs || sharedDocs.length === 0) {
+                inlineFiles.innerHTML = '<p style="color: var(--muted); text-align: center; padding: 2rem;">No documents shared with you yet</p>';
+                return;
+              }
+              
+              sharedDocs.forEach(doc => {
+                const fileCard = document.createElement('div');
+                fileCard.style.cssText = 'border: 1px solid var(--border); border-radius: 8px; padding: 1rem; cursor: pointer; transition: all 0.2s ease; display: flex; align-items: center; gap: 1rem;';
+                fileCard.addEventListener('mouseenter', () => {
+                  fileCard.style.background = 'var(--subsurface)';
+                  fileCard.style.borderColor = 'var(--accent)';
+                });
+                fileCard.addEventListener('mouseleave', () => {
+                  fileCard.style.background = 'white';
+                  fileCard.style.borderColor = 'var(--border)';
+                });
+                
+                const icon = getFileIcon(doc.filename);
+                fileCard.innerHTML = `
+                  <span style="font-size: 2rem;">${icon}</span>
+                  <div style="flex: 1; min-width: 0;">
+                    <div style="font-weight: 600; margin-bottom: 0.25rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${doc.filename}</div>
+                    <div style="font-size: 0.85rem; color: var(--muted);">Shared by ${doc.shared_by_email || 'unknown'} • ${formatBytes(doc.size)}</div>
+                  </div>
+                  <button class="inline-preview-btn" data-id="${doc.id}" style="background: var(--accent); color: white; border: none; padding: 0.5rem 1rem; border-radius: 6px; cursor: pointer; font-weight: 600;">Preview</button>
+                `;
+                
+                fileCard.addEventListener('click', (e) => {
+                  if (!e.target.classList.contains('inline-preview-btn')) {
+                    // Store doc in visibleDocs for preview to work
+                    visibleDocs = [doc];
+                    handlePreview(doc.id, true);
+                  }
+                });
+                
+                inlineFiles.appendChild(fileCard);
+              });
+              
+              // Attach preview button handlers
+              document.querySelectorAll('.inline-preview-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                  e.stopPropagation();
+                  const docId = btn.dataset.id;
+                  const doc = sharedDocs.find(d => d.id === docId);
+                  if (doc) {
+                    visibleDocs = [doc];
+                    handlePreview(docId, true);
+                  }
+                });
+              });
+            }
+          } catch (err) {
+            if (inlineStatus) inlineStatus.textContent = 'Failed to load';
+            if (inlineFiles) inlineFiles.innerHTML = '<p style="color: var(--danger); text-align: center; padding: 2rem;">Failed to load shared documents</p>';
+          }
+        }
       });
     }
 

@@ -9,6 +9,10 @@ class Settings(BaseSettings):
     MINIO_ACCESS_KEY: str = "admin"
     MINIO_SECRET_KEY: str = "changeme"
     MINIO_BUCKET: str = "vericase-docs"
+    S3_BUCKET: str = "vericase-docs"  # Alias for MINIO_BUCKET
+    S3_ENDPOINT: str = "http://minio:9000"  # Alias for MINIO_ENDPOINT
+    S3_ACCESS_KEY: str = "admin"  # Alias for MINIO_ACCESS_KEY
+    S3_SECRET_KEY: str = "changeme"  # Alias for MINIO_SECRET_KEY
     AWS_REGION: str = "us-east-1"
     
     # Database

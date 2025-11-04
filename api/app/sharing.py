@@ -85,7 +85,7 @@ async def share_document(
     # Check if already shared
     existing = db.query(DocumentShare).filter(
         DocumentShare.document_id == doc.id,
-        DocumentShare.user_id == target_user.id
+        DocumentShare.shared_with == target_user.id
     ).first()
     
     if existing:
@@ -106,7 +106,8 @@ async def share_document(
     # Create new share
     share = DocumentShare(
         document_id=doc.id,
-        user_id=target_user.id,
+        shared_by=user.id,
+        shared_with=target_user.id,
         permission=data.permission
     )
     
@@ -146,7 +147,7 @@ async def list_document_shares(
     
     result = []
     for share in shares:
-        shared_user = db.get(User, share.user_id)
+        shared_user = db.get(User, share.shared_with)
         if shared_user:
             result.append(ShareResponse(
                 id=str(share.id),
@@ -178,7 +179,7 @@ async def revoke_document_share(
     
     share = db.query(DocumentShare).filter(
         DocumentShare.document_id == doc.id,
-        DocumentShare.user_id == share_user_uuid
+        DocumentShare.shared_with == share_user_uuid
     ).first()
     
     if not share:
@@ -196,7 +197,7 @@ async def list_shared_documents(
 ):
     """List documents shared with the current user"""
     shares = db.query(DocumentShare).filter(
-        DocumentShare.user_id == user.id
+        DocumentShare.shared_with == user.id
     ).all()
     
     result = []
@@ -248,7 +249,7 @@ async def share_folder(
     existing = db.query(FolderShare).filter(
         FolderShare.folder_path == path,
         FolderShare.owner_id == user.id,
-        FolderShare.user_id == target_user.id
+        FolderShare.shared_with == target_user.id
     ).first()
     
     if existing:
@@ -270,7 +271,8 @@ async def share_folder(
     share = FolderShare(
         folder_path=path,
         owner_id=user.id,
-        user_id=target_user.id,
+        shared_by=user.id,
+        shared_with=target_user.id,
         permission=data.permission
     )
     
@@ -304,7 +306,7 @@ async def list_folder_shares(
     
     result = []
     for share in shares:
-        shared_user = db.get(User, share.user_id)
+        shared_user = db.get(User, share.shared_with)
         if shared_user:
             result.append(FolderShareResponse(
                 id=str(share.id),
@@ -334,7 +336,7 @@ async def revoke_folder_share(
     share = db.query(FolderShare).filter(
         FolderShare.folder_path == path,
         FolderShare.owner_id == user.id,
-        FolderShare.user_id == share_user_uuid
+        FolderShare.shared_with == share_user_uuid
     ).first()
     
     if not share:

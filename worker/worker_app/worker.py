@@ -99,3 +99,76 @@ def ocr_and_index(doc_id: str):
     _index_document(doc_id, doc["filename"], doc["created_at"], doc.get("content_type") or "application/octet-stream", doc.get("metadata"), text or "", doc.get("path"), doc.get("owner_user_id"))
     _update_status(doc_id,"READY",excerpt)
     return {"id": doc_id, "chars": len(text or "")}
+
+
+@celery_app.task(name="worker_app.worker.process_pst_file", queue=settings.CELERY_QUEUE)
+def process_pst_file(doc_id: str, case_id: str, company_id: str):
+    """
+    THE ULTIMATE PST PROCESSOR TASK
+    
+    Processes PST files with enterprise-grade extraction:
+    - Extracts all emails without storing individual files (smart indexing)
+    - Extracts all attachments with deduplication
+    - Builds email threads (Message-ID, In-Reply-To, Conversation-Index)
+    - Indexes to OpenSearch for instant search
+    """
+    import sys
+    import logging
+    from sqlalchemy.orm import Session, sessionmaker
+    
+    # Setup logging
+    logging.basicConfig(level=logging.INFO)
+    logger = logging.getLogger(__name__)
+    
+    logger.info(f"Starting PST processing for document {doc_id}")
+    
+    try:
+        # Import PST processor (import here to avoid loading pypff in main process)
+        sys.path.insert(0, '/code')
+        from app.pst_processor import UltimatePSTProcessor
+        from app.models import Document
+        
+        # Create DB session
+        SessionLocal = sessionmaker(bind=engine)
+        db = SessionLocal()
+        
+        try:
+            # Get document info
+            doc = _fetch_doc(doc_id)
+            if not doc:
+                logger.error(f"Document {doc_id} not found")
+                return {"error": "Document not found"}
+            
+            # Update status
+            _update_status(doc_id, "PROCESSING", "Extracting PST file...")
+            
+            # Initialize processor
+            processor = UltimatePSTProcessor(
+                db=db,
+                s3_client=s3,
+                opensearch_client=os_client
+            )
+            
+            # Process PST
+            stats = processor.process_pst(
+                pst_s3_key=doc["s3_key"],
+                document_id=doc_id,
+                case_id=case_id,
+                company_id=company_id
+            )
+            
+            # Update document status with stats
+            excerpt = f"PST processed: {stats['total_emails']} emails, {stats['total_attachments']} attachments, {stats['threads_identified']} threads"
+            _update_status(doc_id, "READY", excerpt)
+            
+            logger.info(f"PST processing completed: {stats}")
+            
+            return stats
+            
+        finally:
+            db.close()
+            
+    except Exception as e:
+        logger.error(f"PST processing failed: {e}", exc_info=True)
+        _update_status(doc_id, "FAILED", f"PST processing error: {str(e)}")
+        raise

@@ -8,6 +8,7 @@ from fastapi import FastAPI, Depends, HTTPException, Query, Body, Response
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import RedirectResponse
+from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from sqlalchemy.orm import Session, joinedload
 from .config import settings
 from .db import Base, engine
@@ -24,8 +25,12 @@ from .favorites import router as favorites_router
 from .versioning import router as versioning_router
 from .ai_intelligence import router as ai_router
 from .ai_orchestrator import router as orchestrator_router
+from .cases import router as cases_router
+from .simple_cases import router as simple_cases_router
+from .programmes import router as programmes_router
 
 logger = logging.getLogger(__name__)
+bearer = HTTPBearer()
 
 
 def _parse_uuid(value: str) -> uuid.UUID:
@@ -63,6 +68,9 @@ app.include_router(favorites_router)
 app.include_router(versioning_router)
 app.include_router(ai_router)
 app.include_router(orchestrator_router)
+app.include_router(simple_cases_router)  # Must come BEFORE cases_router to match first
+app.include_router(cases_router)
+app.include_router(programmes_router)
 
 origins=[o.strip() for o in settings.CORS_ORIGINS.split(",") if o.strip()]
 if origins:
@@ -87,21 +95,52 @@ def root():
 def startup():
     Base.metadata.create_all(bind=engine); ensure_bucket(); ensure_index()
 # Auth
-@app.post("/auth/signup")
+@app.post("/api/auth/register")
+@app.post("/auth/signup")  # Keep old endpoint for compatibility
 def signup(payload: dict = Body(...), db: Session = Depends(get_db)):
     email=(payload.get("email") or "").strip().lower(); password=payload.get("password") or ""
+    full_name = payload.get("full_name", "")
     if not email or not password: raise HTTPException(400,"email and password required")
     from .models import User
     if db.query(User).filter(User.email==email).first(): raise HTTPException(409,"email already registered")
-    user=User(email=email, password_hash=hash_password(password)); db.add(user); db.commit()
-    token=sign_token(str(user.id), user.email); return {"token": token, "user":{"id":str(user.id),"email":user.email}}
-@app.post("/auth/login")
+    user=User(email=email, password_hash=hash_password(password), full_name=full_name); db.add(user); db.commit()
+    token=sign_token(str(user.id), user.email)
+    return {"access_token": token, "token_type": "bearer", "user":{"id":str(user.id),"email":user.email,"full_name":full_name}}
+
+@app.post("/api/auth/login")
+@app.post("/auth/login")  # Keep old endpoint for compatibility
 def login(payload: dict = Body(...), db: Session = Depends(get_db)):
     email=(payload.get("email") or "").strip().lower(); password=payload.get("password") or ""
     user=db.query(User).filter(User.email==email).first()
     if not user or not verify_password(password, user.password_hash): raise HTTPException(401,"invalid credentials")
-    token=sign_token(str(user.id), user.email); return {"token": token, "user":{"id":str(user.id),"email":user.email}}
+    token=sign_token(str(user.id), user.email)
+    return {"access_token": token, "token_type": "bearer", "user":{"id":str(user.id),"email":user.email,"full_name":user.full_name}}
+
+@app.get("/api/auth/me")
+def get_current_user_info(creds: HTTPAuthorizationCredentials = Depends(bearer), db: Session = Depends(get_db)):
+    from .security import current_user
+    user = current_user(creds, db)
+    return {"id":str(user.id),"email":user.email,"full_name":user.full_name}
 # Uploads (presign and complete)
+@app.post("/uploads/init")
+def init_upload(body: dict = Body(...), user: User = Depends(current_user)):
+    """Initialize file upload - returns upload_id and presigned URL"""
+    filename=body.get("filename"); ct=body.get("content_type") or "application/octet-stream"
+    size=int(body.get("size") or 0)
+    
+    # Generate unique upload ID and S3 key
+    upload_id = str(uuid4())
+    s3_key = f"uploads/{user.id}/{upload_id}/{filename}"
+    
+    # Get presigned PUT URL
+    upload_url = presign_put(s3_key, ct)
+    
+    return {
+        "upload_id": upload_id,
+        "upload_url": upload_url,
+        "s3_key": s3_key
+    }
+
 @app.post("/uploads/presign")
 def presign_upload(body: dict = Body(...), user: User = Depends(current_user)):
     filename=body.get("filename"); ct=body.get("content_type") or "application/octet-stream"
@@ -111,21 +150,25 @@ def presign_upload(body: dict = Body(...), user: User = Depends(current_user)):
 @app.post("/uploads/complete")
 def complete_upload(body: dict = Body(...), db: Session = Depends(get_db), user: User = Depends(current_user)):
     from .models import Document, DocStatus
-    key=body.get("key"); filename=body.get("filename") or "file"; ct=body.get("content_type") or "application/octet-stream"
-    size=int(body.get("size") or 0); title=body.get("title"); path=body.get("path")
+    
+    # Support both new (upload_id) and legacy (key) formats
+    upload_id = body.get("upload_id")
+    filename = body.get("filename") or "file"
+    
+    if upload_id:
+        # New format: construct key from upload_id
+        key = f"uploads/{user.id}/{upload_id}/{filename}"
+    else:
+        # Legacy format: use provided key
+        key = body.get("key")
+    
+    ct = body.get("content_type") or "application/octet-stream"
+    size = int(body.get("size") or 0)
+    title = body.get("title")
+    path = body.get("path")
+    
     # Set empty paths to None so they're treated consistently
     if path == "": path = None
-    
-    # Determine workspace type and privacy based on path
-    workspace_type = "shared"
-    is_private = False
-    if path:
-        if path.startswith("private/"):
-            workspace_type = "private"
-            is_private = True
-        elif path.startswith("shared/"):
-            workspace_type = "shared"
-            is_private = False
     
     doc=Document(
         filename=filename, 
@@ -136,14 +179,26 @@ def complete_upload(body: dict = Body(...), db: Session = Depends(get_db), user:
         s3_key=key, 
         title=title, 
         status=DocStatus.NEW, 
-        owner_user_id=user.id,
-        workspace_type=workspace_type,
-        is_private=is_private
+        owner_user_id=user.id
     )
     db.add(doc); db.commit(); 
-    # Queue OCR and AI classification
-    celery_app.send_task("worker_app.worker.ocr_and_index", args=[str(doc.id)])
-    return {"id": str(doc.id), "status":"QUEUED", "ai_enabled": True}
+    
+    # Check if PST file - trigger PST processor instead of OCR
+    if filename.lower().endswith('.pst'):
+        # Get case_id and company_id from body or user
+        case_id = body.get("case_id") or str(user.id)  # Default to user ID if no case
+        company_id = body.get("company_id", "1")
+        
+        celery_app.send_task(
+            "worker_app.worker.process_pst_file", 
+            args=[str(doc.id), case_id, company_id]
+        )
+        return {"id": str(doc.id), "status":"PROCESSING_PST", "message": "PST file queued for extraction"}
+    else:
+        # Queue OCR and AI classification for other files
+        celery_app.send_task("worker_app.worker.ocr_and_index", args=[str(doc.id)])
+        return {"id": str(doc.id), "status":"QUEUED", "ai_enabled": True}
+
 @app.post("/uploads/multipart/start")
 def multipart_start_ep(body: dict = Body(...), user: User = Depends(current_user)):
     filename=body.get("filename"); ct=body.get("content_type") or "application/octet-stream"
@@ -160,17 +215,6 @@ def multipart_complete_ep(body: dict = Body(...), db: Session = Depends(get_db),
     # Set empty paths to None so they're treated consistently
     if path == "": path = None
     
-    # Determine workspace type and privacy based on path
-    workspace_type = "shared"
-    is_private = False
-    if path:
-        if path.startswith("private/"):
-            workspace_type = "private"
-            is_private = True
-        elif path.startswith("shared/"):
-            workspace_type = "shared"
-            is_private = False
-    
     doc=Document(
         filename=filename, 
         path=path, 
@@ -180,9 +224,7 @@ def multipart_complete_ep(body: dict = Body(...), db: Session = Depends(get_db),
         s3_key=key, 
         title=title, 
         status=DocStatus.NEW, 
-        owner_user_id=user.id,
-        workspace_type=workspace_type,
-        is_private=is_private
+        owner_user_id=user.id
     )
     db.add(doc); db.commit(); celery_app.send_task("worker_app.worker.ocr_and_index", args=[str(doc.id)])
     return {"id": str(doc.id), "status":"QUEUED"}
@@ -198,7 +240,24 @@ def list_documents(
     db: Session = Depends(get_db),
     user: User = Depends(current_user),
 ):
-    query = db.query(Document).filter(Document.owner_user_id == user.id)
+    from .models import UserRole
+    
+    # Admin sees all documents except other users' private documents
+    if user.role == UserRole.ADMIN:
+        # Start with all documents
+        query = db.query(Document)
+        # Then filter out private documents from other users
+        from sqlalchemy import or_, and_
+        query = query.filter(
+            or_(
+                Document.path.is_(None),  # Documents with no path
+                ~Document.path.like('private/%'),  # Not in private folder
+                and_(Document.path.like('private/%'), Document.owner_user_id == user.id)  # Or it's admin's own private folder
+            )
+        )
+    else:
+        # Regular users see only their own documents
+        query = db.query(Document).filter(Document.owner_user_id == user.id)
     if path_prefix is not None:
         if path_prefix == "":
             # Empty string means root - show documents with no path or empty path
@@ -514,8 +573,27 @@ def delete_folder(body: dict = Body(...), db: Session = Depends(get_db), user: U
 @app.get("/folders", response_model=FolderListResponse)
 def list_folders(db: Session = Depends(get_db), user: User = Depends(current_user)):
     """List all folders with metadata including document counts"""
-    doc_paths = db.query(Document.path).filter(Document.owner_user_id == user.id, Document.path.isnot(None)).distinct().all()
-    empty_folders = db.query(Folder).filter(Folder.owner_user_id == user.id).all()
+    from .models import UserRole
+    
+    # Admin sees all folders except other users' private folders
+    if user.role == UserRole.ADMIN:
+        # Get all document paths
+        doc_paths = db.query(Document.path, Document.owner_user_id).filter(Document.path.isnot(None)).distinct().all()
+        # Filter out private folders from other users
+        doc_paths = [(path, owner_id) for path, owner_id in doc_paths 
+                     if not path.startswith('private/') or owner_id == user.id]
+        # Convert back to tuple format
+        doc_paths = [(path,) for path, _ in doc_paths]
+        
+        # Get all empty folders
+        empty_folders = db.query(Folder).all()
+        # Filter out private folders from other users
+        empty_folders = [f for f in empty_folders 
+                        if not f.path.startswith('private/') or f.owner_user_id == user.id]
+    else:
+        # Regular users see only their own folders
+        doc_paths = db.query(Document.path).filter(Document.owner_user_id == user.id, Document.path.isnot(None)).distinct().all()
+        empty_folders = db.query(Folder).filter(Folder.owner_user_id == user.id).all()
     folder_map = {}
     for (path,) in doc_paths:
         if not path: continue

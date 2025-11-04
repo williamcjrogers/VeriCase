@@ -1,0 +1,1117 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>VeriCase Analysis - Case Management</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #f4f6fb;
+      --surface: #ffffff;
+      --text: #111827;
+      --muted: #64748b;
+      --border: #e2e8f0;
+      --accent: #2563eb;
+      --accent-strong: #1d4ed8;
+      --shadow-sm: 0 2px 6px rgba(15, 23, 42, 0.08);
+      --shadow-md: 0 16px 32px rgba(15, 23, 42, 0.1);
+      --radius-md: 14px;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: linear-gradient(135deg, #edf2fb 0%, #f8fafc 45%, #eef2ff 100%);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 1rem 2rem;
+      border-bottom: 1px solid rgba(148, 163, 184, 0.25);
+      background: rgba(255, 255, 255, 0.9);
+      backdrop-filter: blur(12px);
+      box-shadow: var(--shadow-sm);
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+
+    .logo strong {
+      font-size: 1.1rem;
+      letter-spacing: -0.01em;
+    }
+
+    .logo span {
+      color: var(--muted);
+      font-size: 0.8rem;
+    }
+
+    .session {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+
+    .btn-secondary {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      color: var(--text);
+      padding: 0.5rem 1rem;
+      border-radius: 8px;
+      font-size: 0.85rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .btn-secondary:hover {
+      background: var(--bg);
+      border-color: var(--accent);
+    }
+
+    .btn-primary {
+      background: var(--accent);
+      border: none;
+      color: white;
+      padding: 0.5rem 1rem;
+      border-radius: 8px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .btn-primary:hover {
+      background: var(--accent-strong);
+      transform: translateY(-1px);
+    }
+
+    main {
+      flex: 1;
+      display: flex;
+      max-width: 1400px;
+      width: 100%;
+      margin: 0 auto;
+      padding: 2rem;
+    }
+
+    .sidebar {
+      width: 240px;
+      margin-right: 2rem;
+      background: var(--surface);
+      border-radius: var(--radius-md);
+      padding: 1.5rem;
+      box-shadow: var(--shadow-sm);
+      height: fit-content;
+      position: sticky;
+      top: 100px;
+    }
+
+    .nav-section {
+      font-size: 0.75rem;
+      font-weight: 600;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 0.75rem;
+    }
+
+    .nav-list button {
+      width: 100%;
+      background: transparent;
+      border: none;
+      text-align: left;
+      padding: 0.625rem 0.875rem;
+      border-radius: 8px;
+      font-size: 0.9rem;
+      color: var(--text);
+      cursor: pointer;
+      transition: all 0.15s;
+      margin-bottom: 0.25rem;
+      font-family: 'Inter', sans-serif;
+    }
+
+    .nav-list button:hover {
+      background: rgba(37, 99, 235, 0.08);
+    }
+
+    .nav-list button.active {
+      background: rgba(37, 99, 235, 0.12);
+      color: var(--accent);
+      font-weight: 600;
+    }
+
+    .content {
+      flex: 1;
+    }
+
+    .content-card {
+      background: var(--surface);
+      border-radius: var(--radius-md);
+      padding: 2rem;
+      box-shadow: var(--shadow-sm);
+      margin-bottom: 2rem;
+    }
+
+    .content-card h2 {
+      font-size: 1.5rem;
+      margin-bottom: 0.5rem;
+    }
+
+    .content-card p {
+      color: var(--muted);
+      line-height: 1.6;
+    }
+
+    .feature-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 1.5rem;
+      margin-top: 2rem;
+    }
+
+    .feature-card {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 1.5rem;
+    }
+
+    .feature-card h3 {
+      font-size: 1.1rem;
+      margin-bottom: 0.5rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .feature-card p {
+      color: var(--muted);
+      font-size: 0.9rem;
+      line-height: 1.5;
+    }
+
+    .coming-soon {
+      display: inline-block;
+      background: rgba(16, 185, 129, 0.1);
+      color: #10b981;
+      padding: 0.25rem 0.5rem;
+      border-radius: 6px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      margin-left: 0.5rem;
+    }
+
+    .login-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.6);
+      backdrop-filter: blur(8px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+    }
+
+    .login-card {
+      background: var(--surface);
+      border-radius: var(--radius-md);
+      padding: 2.5rem;
+      max-width: 420px;
+      width: 100%;
+      box-shadow: var(--shadow-md);
+    }
+
+    .login-card h2 {
+      font-size: 1.75rem;
+      margin-bottom: 0.5rem;
+    }
+
+    .login-card p {
+      color: var(--muted);
+      margin-bottom: 1.5rem;
+    }
+
+    .login-card input {
+      width: 100%;
+      padding: 0.75rem;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      font-size: 0.95rem;
+      margin-bottom: 1rem;
+      font-family: 'Inter', sans-serif;
+    }
+
+    .login-card input:focus {
+      outline: none;
+      border-color: var(--accent);
+    }
+
+    .login-card .btn-group {
+      display: flex;
+      gap: 0.75rem;
+    }
+
+    .login-card .btn-group button {
+      flex: 1;
+      padding: 0.875rem;
+      font-size: 1rem;
+    }
+
+    /* Correspondence Styles */
+    .section {
+      display: none;
+    }
+
+    .section.active {
+      display: block;
+    }
+
+    .corr-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1.5rem;
+    }
+
+    .corr-actions {
+      display: flex;
+      gap: 0.75rem;
+    }
+
+    .filter-chips {
+      display: flex;
+      gap: 0.5rem;
+      margin-bottom: 1rem;
+      flex-wrap: wrap;
+    }
+
+    .chip {
+      padding: 0.5rem 1rem;
+      border-radius: 20px;
+      border: 1px solid var(--border);
+      background: var(--surface);
+      font-size: 0.85rem;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .chip:hover, .chip.active {
+      background: var(--accent);
+      color: white;
+      border-color: var(--accent);
+    }
+
+    .corr-grid {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.9rem;
+    }
+
+    .corr-grid thead {
+      background: var(--bg);
+      position: sticky;
+      top: 0;
+      z-index: 5;
+    }
+
+    .corr-grid th {
+      padding: 0.875rem;
+      text-align: left;
+      font-weight: 600;
+      border-bottom: 2px solid var(--border);
+    }
+
+    .corr-grid td {
+      padding: 0.875rem;
+      border-bottom: 1px solid var(--border);
+      vertical-align: top;
+    }
+
+    .corr-grid tbody tr:hover {
+      background: rgba(37, 99, 235, 0.04);
+      cursor: pointer;
+    }
+
+    .slippage-badge {
+      padding: 0.25rem 0.75rem;
+      border-radius: 12px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      display: inline-block;
+    }
+
+    .slippage-critical { background: #fee; color: #b91c1c; }
+    .slippage-warning { background: #fef3c7; color: #b45309; }
+    .slippage-ontrack { background: #d1fae5; color: #065f46; }
+
+    .search-input {
+      width: 100%;
+      padding: 0.75rem;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      font-size: 0.95rem;
+      margin-bottom: 1rem;
+    }
+
+    .search-input:focus {
+      outline: none;
+      border-color: var(--accent);
+    }
+
+    .modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.6);
+      backdrop-filter: blur(8px);
+      z-index: 100;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .modal.show {
+      display: flex;
+    }
+
+    .modal-content {
+      background: var(--surface);
+      border-radius: var(--radius-md);
+      padding: 2rem;
+      max-width: 500px;
+      width: 90%;
+      box-shadow: var(--shadow-md);
+    }
+
+    .modal-content h3 {
+      margin-bottom: 1.5rem;
+    }
+
+    .form-group {
+      margin-bottom: 1rem;
+    }
+
+    .form-group label {
+      display: block;
+      font-weight: 600;
+      margin-bottom: 0.5rem;
+      font-size: 0.9rem;
+    }
+
+    .form-group input, .form-group select {
+      width: 100%;
+      padding: 0.75rem;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      font-size: 0.95rem;
+    }
+
+    .form-group input:focus, .form-group select:focus {
+      outline: none;
+      border-color: var(--accent);
+    }
+  </style>
+</head>
+<body>
+  <!-- Login Overlay -->
+  <div class="login-overlay" id="login-overlay">
+    <div class="login-card">
+      <h2>Sign In to Analysis</h2>
+      <p style="color: var(--muted);">Access case management and AI-powered chronology tools.</p>
+      <input type="email" id="email" placeholder="Email address">
+      <input type="password" id="pwd" placeholder="Password">
+      <div class="btn-group">
+        <button class="btn-primary" id="login-btn">Log In</button>
+        <button class="btn-secondary" onclick="window.location.href='landing.html'">Back</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main App (Hidden until logged in) -->
+  <div id="main-app" style="display: none;">
+    <header>
+      <div class="logo">
+        <img src="assets/vericase-logo.png" alt="VeriCase" style="height:42px;" onerror="this.style.display='none'">
+        <div style="display:flex; flex-direction:column;">
+          <strong>VeriCase Analysis</strong>
+          <span>Case Management & Chronology</span>
+        </div>
+      </div>
+      <div class="session">
+        <span id="session-email" style="color: var(--muted); font-size: 0.85rem;"></span>
+        <button class="btn-secondary" onclick="window.location.href='landing.html'">← File Server</button>
+        <button class="btn-secondary" id="signout">Sign Out</button>
+      </div>
+    </header>
+
+    <main>
+      <aside class="sidebar">
+        <div class="nav-section">Analysis</div>
+        <div class="nav-list">
+          <button class="active" id="nav-cases">📋 Cases</button>
+          <button id="nav-evidence">📎 Evidence</button>
+          <button id="nav-correspondence">✉️ Correspondence</button>
+          <button id="nav-issues">⚖️ Issues</button>
+          <button id="nav-chronology">📅 Chronology</button>
+          <button id="nav-claims">💰 Claims</button>
+        </div>
+        <div class="nav-section" style="margin-top: 2rem;">Tools</div>
+        <div class="nav-list">
+          <button id="nav-ai">🤖 AI Assistant</button>
+          <button id="nav-reports">📊 Reports</button>
+        </div>
+      </aside>
+
+      <div class="content">
+        <!-- Cases Section (Default) -->
+        <div class="section active" id="section-cases">
+          <div class="content-card">
+            <h2>Welcome to VeriCase Analysis</h2>
+            <p>
+              Advanced case management and AI-powered chronology analysis for construction disputes. 
+              Link evidence to claims, track issues, and generate court-ready timelines with The Chronology Lens™.
+            </p>
+          </div>
+
+          <div class="content-card">
+            <h2>Case Management Features</h2>
+            <div class="feature-grid">
+              <div class="feature-card">
+                <h3>📋 Case Tracking</h3>
+                <p>
+                  Organize cases by project, contract type, and dispute category. Track JCT/NEC contracts 
+                  with full multi-tenant support.
+                </p>
+              </div>
+
+              <div class="feature-card">
+                <h3>📎 Evidence Linking</h3>
+                <p>
+                  Connect documents, emails, and site reports to specific cases and issues. 
+                  Automatic relevance scoring powered by AI.
+                </p>
+              </div>
+
+              <div class="feature-card">
+                <h3>⚖️ Issue Management</h3>
+                <p>
+                  Track legal issues, disputes, and contractual breaches. Link to relevant contract 
+                  clauses and supporting evidence.
+                </p>
+              </div>
+
+              <div class="feature-card">
+                <h3>📅 The Chronology Lens™</h3>
+                <p>
+                  AI-powered timeline generation from millions of documents. Court-ready chronologies 
+                  with automatic cross-referencing.
+                </p>
+              </div>
+
+              <div class="feature-card">
+                <h3>💰 Claims Analysis</h3>
+                <p>
+                  Track delay claims, defect claims, variations, and EOTs. Link to schedule impacts 
+                  and supporting evidence.
+                </p>
+              </div>
+
+              <div class="feature-card">
+                <h3>📊 Expert Reports</h3>
+                <p>
+                  Generate Scott Schedules, witness statements, and court bundles automatically. 
+                  CPR-compliant formatting.
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Correspondence Section -->
+        <div class="section" id="section-correspondence">
+          <div class="content-card">
+            <div class="corr-header">
+              <div>
+                <h2>Correspondence Analysis</h2>
+                <p style="color: var(--muted); margin-top: 0.5rem;">Email correspondence with As-Planned and As-Built schedule tracking</p>
+              </div>
+              <div class="corr-actions">
+                <button class="btn-secondary" onclick="exportToCSV()">📥 Export CSV</button>
+                <button class="btn-primary" onclick="showUploadModal()">📊 Upload Programme</button>
+              </div>
+            </div>
+
+            <input type="text" class="search-input" id="corr-search" placeholder="🔍 Search correspondence..." onkeyup="filterCorrespondence()">
+
+            <div class="filter-chips">
+              <span class="chip active" data-filter="all" onclick="setFilter('all')">All</span>
+              <span class="chip" data-filter="emails" onclick="setFilter('emails')">Emails</span>
+              <span class="chip" data-filter="delays" onclick="setFilter('delays')">With Delays</span>
+              <span class="chip" data-filter="critical" onclick="setFilter('critical')">Critical Path</span>
+              <span class="chip" data-filter="unlinked" onclick="setFilter('unlinked')">Unlinked</span>
+            </div>
+
+            <div style="overflow-x: auto;">
+              <table class="corr-grid">
+                <thead>
+                  <tr>
+                    <th style="width: 120px;">Date</th>
+                    <th style="width: 180px;">From</th>
+                    <th style="width: 180px;">To</th>
+                    <th>Subject</th>
+                    <th style="width: 150px;">As-Planned</th>
+                    <th style="width: 150px;">As-Built</th>
+                    <th style="width: 100px;">Slippage</th>
+                  </tr>
+                </thead>
+                <tbody id="corr-tbody">
+                  <tr>
+                    <td colspan="7" style="text-align: center; padding: 2rem; color: var(--muted);">
+                      Loading correspondence...
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- Other sections (placeholders) -->
+        <div class="section" id="section-evidence">
+          <div class="content-card">
+            <div class="corr-header">
+              <div>
+                <h2>Evidence Management</h2>
+                <p style="color: var(--muted); margin-top: 0.5rem;">Upload PST files, PDFs, and documents for case analysis</p>
+              </div>
+              <div class="corr-actions">
+                <button class="btn-primary" onclick="document.getElementById('file-upload').click()">📤 Upload Files</button>
+              </div>
+            </div>
+
+            <input type="file" id="file-upload" multiple accept=".pst,.pdf,.doc,.docx,.xls,.xlsx,.msg,.eml" style="display: none;" onchange="handleFileUpload(event)">
+
+            <div id="upload-progress" style="display: none; margin-top: 1rem; padding: 1rem; background: var(--bg); border-radius: 8px;">
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+                <span id="upload-filename" style="font-weight: 600;"></span>
+                <span id="upload-status" style="color: var(--muted); font-size: 0.85rem;"></span>
+              </div>
+              <div style="width: 100%; height: 6px; background: var(--border); border-radius: 3px; overflow: hidden;">
+                <div id="upload-bar" style="width: 0%; height: 100%; background: var(--accent); transition: width 0.3s;"></div>
+              </div>
+            </div>
+
+            <div style="margin-top: 2rem;">
+              <h3 style="font-size: 1.1rem; margin-bottom: 1rem;">Supported File Types</h3>
+              <div class="feature-grid">
+                <div class="feature-card">
+                  <h3>📧 Email Archives (PST)</h3>
+                  <p>
+                    <strong>Outlook PST files</strong> - Automatically extracts emails, builds conversation threads, 
+                    extracts attachments, and indexes content for search. Supports full email threading with 
+                    Message-ID, In-Reply-To, and References headers.
+                  </p>
+                </div>
+
+                <div class="feature-card">
+                  <h3>📄 PDF Documents</h3>
+                  <p>
+                    PDFs with OCR text extraction. Links to cases, issues, and chronology entries automatically.
+                  </p>
+                </div>
+
+                <div class="feature-card">
+                  <h3>📝 Word & Excel</h3>
+                  <p>
+                    Microsoft Office documents (.doc, .docx, .xls, .xlsx) with full-text search and AI-powered relevance scoring.
+                  </p>
+                </div>
+
+                <div class="feature-card">
+                  <h3>✉️ Individual Emails</h3>
+                  <p>
+                    .MSG and .EML files for single email imports. Automatically linked to existing email threads if found.
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <div id="evidence-list" style="margin-top: 2rem;">
+              <h3 style="font-size: 1.1rem; margin-bottom: 1rem;">Uploaded Evidence</h3>
+              <div id="evidence-items">
+                <p style="color: var(--muted); text-align: center; padding: 2rem;">
+                  No evidence uploaded yet. Click "Upload Files" to get started.
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="section" id="section-issues">
+          <div class="content-card">
+            <h2>Issue Tracking</h2>
+            <p style="color: var(--muted);">Define and track legal issues. Coming soon in Phase 2.</p>
+          </div>
+        </div>
+
+        <div class="section" id="section-chronology">
+          <div class="content-card">
+            <h2>Chronology Builder</h2>
+            <p style="color: var(--muted);">AI-powered timeline generation. Coming soon in Phase 2.</p>
+          </div>
+        </div>
+
+        <div class="section" id="section-claims">
+          <div class="content-card">
+            <h2>Claims Analysis</h2>
+            <p style="color: var(--muted);">Track delays, defects, and variations. Coming soon in Phase 2.</p>
+          </div>
+        </div>
+
+        <div class="section" id="section-ai">
+          <div class="content-card">
+            <h2>AI Assistant</h2>
+            <p style="color: var(--muted);">
+              AI-powered case analysis. For now, visit the 
+              <a href="copilot.html" style="color: var(--accent); font-weight: 600;">Copilot Hub</a>.
+            </p>
+          </div>
+        </div>
+
+        <div class="section" id="section-reports">
+          <div class="content-card">
+            <h2>Reports</h2>
+            <p style="color: var(--muted);">Generate expert reports and court bundles. Coming soon in Phase 2.</p>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script>
+    const API_BASE = window.location.origin.replace(':8010', ':8010');
+
+    // Check if already logged in
+    const token = localStorage.getItem('token');
+    if (token) {
+      showMainApp();
+    }
+
+    // Login handler
+    document.getElementById('login-btn').addEventListener('click', async () => {
+      const email = document.getElementById('email').value;
+      const pwd = document.getElementById('pwd').value;
+
+      try {
+        const response = await fetch(`${API_BASE}/auth/login`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email, password: pwd })
+        });
+
+        if (!response.ok) throw new Error('Login failed');
+
+        const data = await response.json();
+        localStorage.setItem('token', data.token);
+        localStorage.setItem('email', email);
+        
+        showMainApp();
+      } catch (error) {
+        alert('Login failed. Please check your credentials.');
+      }
+    });
+
+    // Sign out handler
+    document.getElementById('signout').addEventListener('click', () => {
+      localStorage.removeItem('token');
+      localStorage.removeItem('email');
+      window.location.reload();
+    });
+
+    function showMainApp() {
+      document.getElementById('login-overlay').style.display = 'none';
+      document.getElementById('main-app').style.display = 'flex';
+      document.getElementById('main-app').style.flexDirection = 'column';
+      
+      const email = localStorage.getItem('email');
+      if (email) {
+        document.getElementById('session-email').textContent = email;
+      }
+    }
+
+    // Navigation handlers
+    let correspondenceData = [];
+    let currentFilter = 'all';
+    // Get case ID from URL parameter or localStorage
+    const urlParams = new URLSearchParams(window.location.search);
+    let CASE_ID = urlParams.get('caseId') || localStorage.getItem('activeCaseId');
+    
+    // If no case selected, redirect to case selection
+    if (!CASE_ID) {
+        alert('Please select a case first');
+        window.location.href = 'cases.html';
+    }
+    
+    // Store active case for future use
+    if (CASE_ID) {
+        localStorage.setItem('activeCaseId', CASE_ID);
+    }
+
+    const navButtons = document.querySelectorAll('.nav-list button');
+    navButtons.forEach(button => {
+      button.addEventListener('click', () => {
+        navButtons.forEach(b => b.classList.remove('active'));
+        button.classList.add('active');
+        
+        // Show corresponding section
+        const sections = document.querySelectorAll('.section');
+        sections.forEach(s => s.classList.remove('active'));
+        
+        const navId = button.id.replace('nav-', '');
+        const section = document.getElementById('section-' + navId);
+        if (section) {
+          section.classList.add('active');
+          
+          // Load correspondence data when that section is shown
+          if (navId === 'correspondence' && correspondenceData.length === 0) {
+            loadCorrespondence();
+          }
+        }
+      });
+    });
+
+    // Correspondence functions
+    async function loadCorrespondence() {
+      const token = localStorage.getItem('token');
+      try {
+        const response = await fetch(`${API_BASE}/api/cases/${CASE_ID}/evidence`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        
+        if (!response.ok) throw new Error('Failed to load correspondence');
+        
+        const data = await response.json();
+        correspondenceData = data.filter(e => e.email_from); // Only emails
+        renderCorrespondence();
+      } catch (error) {
+        document.getElementById('corr-tbody').innerHTML = `
+          <tr>
+            <td colspan="7" style="text-align: center; padding: 2rem; color: var(--muted);">
+              No correspondence data available. Upload PST files to get started.
+            </td>
+          </tr>
+        `;
+      }
+    }
+
+    function renderCorrespondence() {
+      const tbody = document.getElementById('corr-tbody');
+      
+      if (correspondenceData.length === 0) {
+        tbody.innerHTML = `
+          <tr>
+            <td colspan="7" style="text-align: center; padding: 2rem; color: var(--muted);">
+              No correspondence found. Upload email PST files to analyze correspondence.
+            </td>
+          </tr>
+        `;
+        return;
+      }
+
+      let filtered = correspondenceData;
+      const searchTerm = document.getElementById('corr-search')?.value?.toLowerCase() || '';
+      
+      // Apply search filter
+      if (searchTerm) {
+        filtered = filtered.filter(item => 
+          (item.email_subject || '').toLowerCase().includes(searchTerm) ||
+          (item.email_from || '').toLowerCase().includes(searchTerm) ||
+          (item.email_to || '').toLowerCase().includes(searchTerm)
+        );
+      }
+
+      // Apply category filter
+      if (currentFilter === 'delays') {
+        filtered = filtered.filter(item => item.delay_days);
+      } else if (currentFilter === 'critical') {
+        filtered = filtered.filter(item => item.is_critical_path);
+      } else if (currentFilter === 'unlinked') {
+        filtered = filtered.filter(item => !item.as_planned_date && !item.as_built_date);
+      }
+
+      tbody.innerHTML = filtered.map(item => {
+        const slippageBadge = item.delay_days
+          ? item.delay_days > 10
+            ? `<span class="slippage-badge slippage-critical">${item.delay_days}d Critical</span>`
+            : item.delay_days > 0
+            ? `<span class="slippage-badge slippage-warning">${item.delay_days}d Warning</span>`
+            : `<span class="slippage-badge slippage-ontrack">On Track</span>`
+          : '-';
+
+        return `
+          <tr>
+            <td>${item.email_date ? new Date(item.email_date).toLocaleDateString('en-GB') : '-'}</td>
+            <td>${item.email_from || '-'}</td>
+            <td>${item.email_to || '-'}</td>
+            <td><strong>${item.email_subject || 'No Subject'}</strong></td>
+            <td>${item.as_planned_date ? new Date(item.as_planned_date).toLocaleDateString('en-GB') : '-'}</td>
+            <td>${item.as_built_date ? new Date(item.as_built_date).toLocaleDateString('en-GB') : '-'}</td>
+            <td>${slippageBadge}</td>
+          </tr>
+        `;
+      }).join('');
+    }
+
+    function filterCorrespondence() {
+      renderCorrespondence();
+    }
+
+    function setFilter(filter) {
+      currentFilter = filter;
+      document.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
+      document.querySelector(`.chip[data-filter="${filter}"]`).classList.add('active');
+      renderCorrespondence();
+    }
+
+    function exportToCSV() {
+      if (correspondenceData.length === 0) {
+        alert('No correspondence data to export');
+        return;
+      }
+
+      const headers = ['Date', 'From', 'To', 'Subject', 'As-Planned', 'As-Built', 'Slippage (days)'];
+      const rows = correspondenceData.map(item => [
+        item.email_date || '',
+        item.email_from || '',
+        item.email_to || '',
+        item.email_subject || '',
+        item.as_planned_date || '',
+        item.as_built_date || '',
+        item.delay_days || ''
+      ]);
+
+      const csv = [headers, ...rows].map(row => row.join(',')).join('\n');
+      const blob = new Blob([csv], { type: 'text/csv' });
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `correspondence_case${CASE_ID}_${new Date().toISOString().split('T')[0]}.csv`;
+      a.click();
+    }
+
+    function showUploadModal() {
+      alert('Programme upload modal coming soon. Use POST /api/programmes/upload endpoint for now.');
+    }
+
+    // File upload handler
+    async function handleFileUpload(event) {
+      const files = event.target.files;
+      if (!files || files.length === 0) return;
+
+      const token = localStorage.getItem('token');
+      const uploadProgress = document.getElementById('upload-progress');
+      const uploadFilename = document.getElementById('upload-filename');
+      const uploadStatus = document.getElementById('upload-status');
+      const uploadBar = document.getElementById('upload-bar');
+
+      for (let file of files) {
+        uploadProgress.style.display = 'block';
+        uploadFilename.textContent = file.name;
+        uploadStatus.textContent = 'Uploading...';
+        uploadBar.style.width = '0%';
+
+        try {
+          // Step 1: Initiate upload
+          const initResponse = await fetch(`${API_BASE}/uploads/init`, {
+            method: 'POST',
+            headers: {
+              'Authorization': `Bearer ${token}`,
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+              filename: file.name,
+              size: file.size,
+              content_type: file.type || 'application/octet-stream'
+            })
+          });
+
+          if (!initResponse.ok) throw new Error('Failed to initiate upload');
+          const { upload_id, upload_url } = await initResponse.json();
+
+          // Step 2: Upload file to S3/MinIO
+          uploadStatus.textContent = 'Uploading to storage...';
+          uploadBar.style.width = '30%';
+
+          const uploadResponse = await fetch(upload_url, {
+            method: 'PUT',
+            body: file,
+            headers: {
+              'Content-Type': file.type || 'application/octet-stream'
+            }
+          });
+
+          if (!uploadResponse.ok) throw new Error('Failed to upload file');
+          uploadBar.style.width = '60%';
+
+          // Step 3: Complete upload
+          uploadStatus.textContent = 'Processing...';
+          const completeResponse = await fetch(`${API_BASE}/uploads/complete`, {
+            method: 'POST',
+            headers: {
+              'Authorization': `Bearer ${token}`,
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+              upload_id,
+              filename: file.name,
+              case_id: CASE_ID.toString(),
+              company_id: '1'
+            })
+          });
+
+          if (!completeResponse.ok) throw new Error('Failed to complete upload');
+          const result = await completeResponse.json();
+
+          uploadBar.style.width = '100%';
+          uploadStatus.textContent = file.name.endsWith('.pst') 
+            ? '✅ PST processing started! Check Correspondence tab for emails.'
+            : '✅ Upload complete!';
+
+          // Refresh evidence list after 2 seconds
+          setTimeout(() => {
+            uploadProgress.style.display = 'none';
+            loadEvidence();
+          }, 2000);
+
+        } catch (error) {
+          console.error('Upload error:', error);
+          uploadStatus.textContent = '❌ Upload failed: ' + error.message;
+          uploadBar.style.width = '0%';
+        }
+      }
+
+      // Reset file input
+      event.target.value = '';
+    }
+
+    // Load evidence list
+    async function loadEvidence() {
+      const token = localStorage.getItem('token');
+      try {
+        const response = await fetch(`${API_BASE}/api/cases/${CASE_ID}/documents`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        
+        if (!response.ok) throw new Error('Failed to load evidence');
+        
+        const data = await response.json();
+        renderEvidence(data);
+      } catch (error) {
+        console.error('Error loading evidence:', error);
+      }
+    }
+
+    function renderEvidence(documents) {
+      const container = document.getElementById('evidence-items');
+      
+      if (!documents || documents.length === 0) {
+        container.innerHTML = `
+          <p style="color: var(--muted); text-align: center; padding: 2rem;">
+            No evidence uploaded yet. Click "Upload Files" to get started.
+          </p>
+        `;
+        return;
+      }
+
+      container.innerHTML = `
+        <div style="display: grid; gap: 1rem;">
+          ${documents.map(doc => `
+            <div style="padding: 1rem; border: 1px solid var(--border); border-radius: 8px; display: flex; justify-content: space-between; align-items: center;">
+              <div>
+                <div style="font-weight: 600; margin-bottom: 0.25rem;">
+                  ${getFileIcon(doc.filename)} ${doc.filename}
+                </div>
+                <div style="font-size: 0.85rem; color: var(--muted);">
+                  Uploaded: ${new Date(doc.uploaded_at).toLocaleString('en-GB')} • 
+                  Status: <span style="color: ${getStatusColor(doc.status)}">${doc.status}</span>
+                  ${doc.extraction_metadata?.total_emails ? ` • ${doc.extraction_metadata.total_emails} emails extracted` : ''}
+                </div>
+              </div>
+              <div style="display: flex; gap: 0.5rem;">
+                ${doc.status === 'READY' ? `
+                  <button class="btn-secondary" onclick="downloadDocument('${doc.id}')">Download</button>
+                ` : ''}
+                ${doc.status === 'PROCESSING_PST' || doc.status === 'PROCESSING' ? `
+                  <span style="color: var(--accent); font-size: 0.85rem;">⏳ Processing...</span>
+                ` : ''}
+              </div>
+            </div>
+          `).join('')}
+        </div>
+      `;
+    }
+
+    function getFileIcon(filename) {
+      const ext = filename.split('.').pop().toLowerCase();
+      const icons = {
+        'pst': '📧',
+        'pdf': '📄',
+        'doc': '📝',
+        'docx': '📝',
+        'xls': '📊',
+        'xlsx': '📊',
+        'msg': '✉️',
+        'eml': '✉️'
+      };
+      return icons[ext] || '📎';
+    }
+
+    function getStatusColor(status) {
+      const colors = {
+        'READY': '#10b981',
+        'PROCESSING': '#f59e0b',
+        'PROCESSING_PST': '#3b82f6',
+        'ERROR': '#ef4444',
+        'PENDING': '#6b7280'
+      };
+      return colors[status] || '#6b7280';
+    }
+
+    async function downloadDocument(docId) {
+      const token = localStorage.getItem('token');
+      window.open(`${API_BASE}/api/documents/${docId}/download?token=${token}`, '_blank');
+    }
+
+    // Load evidence when Evidence section is shown
+    document.getElementById('nav-evidence').addEventListener('click', () => {
+      setTimeout(() => loadEvidence(), 100);
+    });
+  </script>
+</body>
+</html>
