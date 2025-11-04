@@ -1172,40 +1172,191 @@
             },
 
             {
-                headerName: 'Programme',
-                field: 'programme',
-                width: 150,
+                headerName: 'Programme Activity',
+                field: 'programme_activity',
+                width: 250,
                 editable: true,
-                cellEditor: 'agSelectCellEditor',
-                cellEditorParams: {
-                    values: ['Design', 'Construction', 'Procurement', 'Legal', 'Commercial', 'Technical', 'Other']
+                cellRenderer: params => {
+                    const activity = params.value || params.data.linked_activity;
+                    if (!activity) {
+                        return `<div style="color: #9ca3af; font-style: italic; cursor: pointer;" 
+                                    onclick="linkActivityToEmail('${params.data.id}')">
+                                    + Link to programme activity
+                                </div>`;
+                    }
+                    
+                    return `<div style="display: flex; align-items: center; gap: 8px; cursor: pointer;"
+                                 onclick="viewProgrammeAnalysis('${params.data.id}', '${activity}')">
+                        <span style="background: #dbeafe; color: #1e40af; padding: 4px 8px; 
+                                   border-radius: 6px; font-size: 0.875rem; font-weight: 500;">
+                            ${activity}
+                        </span>
+                        <i class="fas fa-chart-gantt" style="color: #3b82f6;"></i>
+                    </div>`;
                 },
-                cellStyle: params => {
-                    const colors = {
-                        'Design': { bg: '#dbeafe', text: '#1e40af' },
-                        'Construction': { bg: '#fed7aa', text: '#92400e' },
-                        'Procurement': { bg: '#fce7f3', text: '#831843' },
-                        'Legal': { bg: '#ede9fe', text: '#5b21b6' },
-                        'Commercial': { bg: '#d1fae5', text: '#065f46' },
-                        'Technical': { bg: '#e0e7ff', text: '#3730a3' },
-                        'Other': { bg: '#f3f4f6', text: '#374151' }
-                    };
-                    const color = colors[params.value] || colors['Other'];
-                    return {
-                        backgroundColor: color.bg,
-                        color: color.text,
-                        fontWeight: '500',
-                        padding: '6px 12px',
-                        borderRadius: '6px',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center'
-                    };
+                filter: 'agTextColumnFilter',
+                filterParams: {
+                    filterOptions: ['contains', 'equals'],
+                    defaultOption: 'contains'
+                }
+            },
+
+            {
+                headerName: 'Baseline vs Actual',
+                field: 'programme_variance',
+                width: 180,
+                cellRenderer: params => {
+                    // This will be calculated from uploaded Asta programmes
+                    const emailDate = params.data.email_date ? new Date(params.data.email_date) : null;
+                    const activity = params.data.programme_activity || params.data.linked_activity;
+                    
+                    if (!emailDate || !activity) {
+                        return '<span style="color: #9ca3af;">-</span>';
+                    }
+                    
+                    // Get programme data from API (to be implemented)
+                    const baselineData = params.data.baseline_programme;
+                    const asBuiltData = params.data.asbuilt_programme;
+                    
+                    if (!baselineData || !asBuiltData) {
+                        return `<div style="color: #9ca3af; font-size: 0.875rem;">
+                            <i class="fas fa-upload"></i> Upload programmes
+                        </div>`;
+                    }
+                    
+                    // Calculate variance (positive = ahead, negative = behind)
+                    const variance = asBuiltData.days_variance || 0;
+                    const isDelayed = variance < 0;
+                    const isAhead = variance > 0;
+                    
+                    if (variance === 0) {
+                        return `<div style="display: flex; align-items: center; gap: 6px; color: #059669;">
+                            <i class="fas fa-check-circle"></i>
+                            <span style="font-weight: 500;">On Track</span>
+                        </div>`;
+                    }
+                    
+                    const color = isDelayed ? '#dc2626' : '#059669';
+                    const icon = isDelayed ? 'fa-exclamation-triangle' : 'fa-arrow-up';
+                    const absVariance = Math.abs(variance);
+                    
+                    return `<div style="display: flex; align-items: center; gap: 6px; color: ${color};">
+                        <i class="fas ${icon}"></i>
+                        <span style="font-weight: 600;">${isDelayed ? '-' : '+'}${absVariance} days</span>
+                    </div>`;
+                },
+                filter: 'agNumberColumnFilter',
+                filterParams: {
+                    filterOptions: ['equals', 'lessThan', 'greaterThan'],
+                    defaultOption: 'lessThan'
+                }
+            },
+
+            {
+                headerName: 'Critical Path',
+                field: 'is_critical_path',
+                width: 120,
+                cellRenderer: params => {
+                    const isCritical = params.value || params.data.on_critical_path;
+                    if (!isCritical) return '-';
+                    
+                    return `<div style="display: flex; align-items: center; justify-content: center; gap: 6px; 
+                                 background: #fee2e2; color: #991b1b; padding: 4px 12px; 
+                                 border-radius: 12px; font-weight: 600; font-size: 0.875rem;">
+                        <i class="fas fa-fire"></i>
+                        <span>CRITICAL</span>
+                    </div>`;
                 },
                 filter: 'agSetColumnFilter',
                 filterParams: {
-                    buttons: ['apply', 'clear', 'reset']
+                    values: ['Yes', 'No'],
+                    buttons: ['apply', 'clear']
                 }
+            },
+
+            {
+                headerName: 'Programme Status',
+                field: 'programme_status',
+                width: 150,
+                cellRenderer: params => {
+                    const emailDate = params.data.email_date ? new Date(params.data.email_date) : null;
+                    const activity = params.data.programme_activity || params.data.linked_activity;
+                    
+                    if (!emailDate || !activity) return '-';
+                    
+                    // Get activity status at email date from Asta data
+                    const status = params.data.activity_status_at_date || 'Unknown';
+                    
+                    const statusConfig = {
+                        'Not Started': { icon: '⏸️', bg: '#f3f4f6', text: '#374151' },
+                        'In Progress': { icon: '🔄', bg: '#dbeafe', text: '#1e40af' },
+                        'Complete': { icon: '✅', bg: '#d1fae5', text: '#065f46' },
+                        'Delayed': { icon: '⚠️', bg: '#fee2e2', text: '#991b1b' },
+                        'Unknown': { icon: '❓', bg: '#f3f4f6', text: '#6b7280' }
+                    };
+                    
+                    const config = statusConfig[status] || statusConfig['Unknown'];
+                    
+                    return `<div style="display: inline-flex; align-items: center; gap: 6px; 
+                                 background: ${config.bg}; color: ${config.text}; 
+                                 padding: 4px 12px; border-radius: 12px; font-weight: 500; font-size: 0.875rem;">
+                        <span>${config.icon}</span>
+                        <span>${status}</span>
+                    </div>`;
+                },
+                filter: 'agSetColumnFilter',
+                filterParams: {
+                    values: ['Not Started', 'In Progress', 'Complete', 'Delayed'],
+                    buttons: ['apply', 'clear']
+                }
+            },
+
+            {
+                headerName: 'Planned % Complete',
+                field: 'planned_progress',
+                width: 140,
+                cellRenderer: params => {
+                    const progress = params.value || params.data.baseline_progress_at_date;
+                    if (progress === undefined || progress === null) return '-';
+                    
+                    const progressNum = Math.round(progress);
+                    const color = progressNum >= 75 ? '#059669' : progressNum >= 50 ? '#f59e0b' : '#dc2626';
+                    
+                    return `<div style="display: flex; align-items: center; gap: 8px;">
+                        <div style="flex: 1; background: #e5e7eb; border-radius: 8px; height: 20px; overflow: hidden;">
+                            <div style="width: ${progressNum}%; height: 100%; background: ${color}; 
+                                      transition: width 0.3s ease;"></div>
+                        </div>
+                        <span style="font-weight: 600; color: ${color}; min-width: 40px; text-align: right;">
+                            ${progressNum}%
+                        </span>
+                    </div>`;
+                },
+                filter: 'agNumberColumnFilter'
+            },
+
+            {
+                headerName: 'Actual % Complete',
+                field: 'actual_progress',
+                width: 140,
+                cellRenderer: params => {
+                    const progress = params.value || params.data.asbuilt_progress_at_date;
+                    if (progress === undefined || progress === null) return '-';
+                    
+                    const progressNum = Math.round(progress);
+                    const color = progressNum >= 75 ? '#059669' : progressNum >= 50 ? '#f59e0b' : '#dc2626';
+                    
+                    return `<div style="display: flex; align-items: center; gap: 8px;">
+                        <div style="flex: 1; background: #e5e7eb; border-radius: 8px; height: 20px; overflow: hidden;">
+                            <div style="width: ${progressNum}%; height: 100%; background: ${color}; 
+                                      transition: width 0.3s ease;"></div>
+                        </div>
+                        <span style="font-weight: 600; color: ${color}; min-width: 40px; text-align: right;">
+                            ${progressNum}%
+                        </span>
+                    </div>`;
+                },
+                filter: 'agNumberColumnFilter'
             },
 
             {
@@ -2004,6 +2155,426 @@
         function downloadDocumentLegacy(documentId, filename) {
             window.open(`http://localhost:8010/documents/${documentId}/download?filename=${encodeURIComponent(filename)}`, '_blank');
         }
+
+        // ==================== PROGRAMME ANALYSIS FUNCTIONS ====================
+
+        /**
+         * Link an email to a programme activity
+         * Opens a modal to select from uploaded Asta programme activities
+         */
+        window.linkActivityToEmail = async function(emailId) {
+            try {
+                // Fetch available programme activities from uploaded Asta files
+                const response = await fetch(`http://localhost:8010/api/cases/${caseId}/programme/activities`, {
+                    headers: {
+                        'Authorization': `Bearer ${localStorage.getItem('token')}`
+                    }
+                });
+                
+                if (!response.ok) {
+                    throw new Error('Failed to load programme activities');
+                }
+                
+                const activities = await response.json();
+                
+                // Create modal with activity selector
+                const modal = document.createElement('div');
+                modal.style.cssText = `
+                    position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+                    background: rgba(0,0,0,0.7); display: flex; align-items: center;
+                    justify-content: center; z-index: 10000;
+                `;
+                
+                modal.innerHTML = `
+                    <div style="background: white; border-radius: 12px; padding: 30px; 
+                              max-width: 600px; width: 90%; max-height: 80vh; overflow-y: auto;">
+                        <h2 style="margin: 0 0 20px 0; color: #1e293b;">
+                            <i class="fas fa-link"></i> Link to Programme Activity
+                        </h2>
+                        
+                        <div style="margin-bottom: 20px;">
+                            <input type="text" id="activitySearchInput" 
+                                   placeholder="Search activities..." 
+                                   style="width: 100%; padding: 12px; border: 1px solid #e2e8f0; 
+                                        border-radius: 8px; font-size: 14px;"
+                                   oninput="filterActivitiesList(this.value)">
+                        </div>
+                        
+                        <div id="activitiesList" style="max-height: 400px; overflow-y: auto;">
+                            ${activities.length === 0 ? `
+                                <div style="text-align: center; padding: 40px; color: #64748b;">
+                                    <i class="fas fa-upload" style="font-size: 48px; margin-bottom: 16px;"></i>
+                                    <p style="font-size: 16px; margin: 0;">No programme uploaded yet</p>
+                                    <button onclick="window.location.href='/ui/programme.html?case=${caseId}'"
+                                            style="margin-top: 20px; background: #3b82f6; color: white; 
+                                                 border: none; padding: 12px 24px; border-radius: 8px; 
+                                                 cursor: pointer; font-weight: 500;">
+                                        <i class="fas fa-upload"></i> Upload Programme
+                                    </button>
+                                </div>
+                            ` : activities.map(activity => `
+                                <div class="activity-item" data-activity-id="${activity.id}" 
+                                     data-activity-name="${activity.name}"
+                                     style="padding: 16px; border: 1px solid #e2e8f0; border-radius: 8px; 
+                                          margin-bottom: 12px; cursor: pointer; transition: all 0.2s;"
+                                     onmouseover="this.style.background='#f8fafc'; this.style.borderColor='#3b82f6'"
+                                     onmouseout="this.style.background='white'; this.style.borderColor='#e2e8f0'"
+                                     onclick="selectActivity('${emailId}', '${activity.id}', '${activity.name}')">
+                                    <div style="font-weight: 600; color: #1e293b; margin-bottom: 4px;">
+                                        ${activity.name}
+                                    </div>
+                                    <div style="font-size: 12px; color: #64748b;">
+                                        ID: ${activity.id} | Duration: ${activity.duration} days
+                                        ${activity.is_critical ? ' | <span style="color: #dc2626; font-weight: 600;">CRITICAL PATH</span>' : ''}
+                                    </div>
+                                </div>
+                            `).join('')}
+                        </div>
+                        
+                        <div style="margin-top: 20px; display: flex; gap: 12px; justify-content: flex-end;">
+                            <button onclick="this.closest('div[style*=fixed]').remove()"
+                                    style="background: #e2e8f0; color: #475569; border: none; 
+                                         padding: 10px 20px; border-radius: 8px; cursor: pointer; 
+                                         font-weight: 500;">
+                                Cancel
+                            </button>
+                        </div>
+                    </div>
+                `;
+                
+                document.body.appendChild(modal);
+                
+            } catch (error) {
+                console.error('Error loading activities:', error);
+                alert('Failed to load programme activities. Make sure you have uploaded a baseline programme.');
+            }
+        };
+
+        /**
+         * Filter activities list based on search input
+         */
+        window.filterActivitiesList = function(searchTerm) {
+            const items = document.querySelectorAll('.activity-item');
+            const lowerSearch = searchTerm.toLowerCase();
+            
+            items.forEach(item => {
+                const name = item.dataset.activityName.toLowerCase();
+                const id = item.dataset.activityId.toLowerCase();
+                
+                if (name.includes(lowerSearch) || id.includes(lowerSearch)) {
+                    item.style.display = 'block';
+                } else {
+                    item.style.display = 'none';
+                }
+            });
+        };
+
+        /**
+         * Select an activity and link it to the email
+         */
+        window.selectActivity = async function(emailId, activityId, activityName) {
+            try {
+                // Save the link in the database
+                await fetch(`http://localhost:8010/api/cases/${caseId}/evidence/${emailId}/link-activity`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${localStorage.getItem('token')}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        activity_id: activityId,
+                        activity_name: activityName
+                    })
+                });
+                
+                // Close modal
+                document.querySelector('div[style*="position: fixed"]').remove();
+                
+                // Refresh the grid to show the linked activity
+                await loadEmails();
+                
+                // Show success message
+                showNotification(`Email linked to activity: ${activityName}`, 'success');
+                
+            } catch (error) {
+                console.error('Error linking activity:', error);
+                alert('Failed to link activity to email');
+            }
+        };
+
+        /**
+         * View detailed programme analysis for an email
+         * Shows baseline vs actual progress at the email's date
+         */
+        window.viewProgrammeAnalysis = async function(emailId, activityId) {
+            try {
+                showLoading(true, 'Loading programme analysis...');
+                
+                // Fetch programme analysis data
+                const response = await fetch(
+                    `http://localhost:8010/api/cases/${caseId}/evidence/${emailId}/programme-analysis?activity=${activityId}`,
+                    {
+                        headers: {
+                            'Authorization': `Bearer ${localStorage.getItem('token')}`
+                        }
+                    }
+                );
+                
+                if (!response.ok) {
+                    throw new Error('Failed to load programme analysis');
+                }
+                
+                const analysis = await response.json();
+                
+                // Create modal with detailed programme analysis
+                const modal = document.createElement('div');
+                modal.style.cssText = `
+                    position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+                    background: rgba(0,0,0,0.8); display: flex; align-items: center;
+                    justify-content: center; z-index: 10000; overflow-y: auto; padding: 20px;
+                `;
+                
+                const emailDate = new Date(analysis.email_date);
+                const variance = analysis.variance_days || 0;
+                const isDelayed = variance < 0;
+                
+                modal.innerHTML = `
+                    <div style="background: white; border-radius: 16px; padding: 40px; 
+                              max-width: 1000px; width: 100%; max-height: 90vh; overflow-y: auto;">
+                        
+                        <!-- Header -->
+                        <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 30px;">
+                            <div>
+                                <h2 style="margin: 0 0 8px 0; color: #1e293b; font-size: 24px;">
+                                    <i class="fas fa-chart-gantt"></i> Programme Analysis
+                                </h2>
+                                <p style="margin: 0; color: #64748b;">
+                                    Activity: <strong>${analysis.activity_name}</strong> | 
+                                    Email Date: <strong>${emailDate.toLocaleDateString()}</strong>
+                                </p>
+                            </div>
+                            <button onclick="this.closest('div[style*=fixed]').remove()"
+                                    style="background: #e2e8f0; border: none; width: 36px; height: 36px; 
+                                         border-radius: 8px; cursor: pointer; font-size: 18px; color: #475569;">
+                                ×
+                            </button>
+                        </div>
+                        
+                        <!-- Variance Alert -->
+                        ${variance !== 0 ? `
+                            <div style="background: ${isDelayed ? '#fee2e2' : '#d1fae5'}; 
+                                      border-left: 4px solid ${isDelayed ? '#dc2626' : '#059669'}; 
+                                      padding: 20px; border-radius: 8px; margin-bottom: 30px;">
+                                <div style="display: flex; align-items: center; gap: 12px;">
+                                    <i class="fas ${isDelayed ? 'fa-exclamation-triangle' : 'fa-check-circle'}" 
+                                       style="font-size: 32px; color: ${isDelayed ? '#dc2626' : '#059669'};"></i>
+                                    <div>
+                                        <h3 style="margin: 0 0 4px 0; color: ${isDelayed ? '#991b1b' : '#065f46'};">
+                                            ${isDelayed ? 'Programme Delay Detected' : 'Programme Ahead of Schedule'}
+                                        </h3>
+                                        <p style="margin: 0; font-size: 18px; font-weight: 600; 
+                                                color: ${isDelayed ? '#dc2626' : '#059669'};">
+                                            ${isDelayed ? '' : '+'}${variance} days ${isDelayed ? 'behind' : 'ahead of'} baseline
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                        ` : ''}
+                        
+                        <!-- Progress Comparison -->
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-bottom: 30px;">
+                            <div style="background: #f8fafc; padding: 24px; border-radius: 12px;">
+                                <h4 style="margin: 0 0 16px 0; color: #475569; font-size: 14px; text-transform: uppercase; letter-spacing: 0.05em;">
+                                    Baseline Programme
+                                </h4>
+                                <div style="font-size: 48px; font-weight: 700; color: #3b82f6; margin-bottom: 12px;">
+                                    ${Math.round(analysis.baseline_progress || 0)}%
+                                </div>
+                                <div style="background: #e2e8f0; height: 12px; border-radius: 6px; overflow: hidden;">
+                                    <div style="width: ${analysis.baseline_progress || 0}%; height: 100%; 
+                                              background: linear-gradient(90deg, #3b82f6, #2563eb);"></div>
+                                </div>
+                                <p style="margin: 12px 0 0 0; color: #64748b; font-size: 14px;">
+                                    Planned progress at ${emailDate.toLocaleDateString()}
+                                </p>
+                            </div>
+                            
+                            <div style="background: #f8fafc; padding: 24px; border-radius: 12px;">
+                                <h4 style="margin: 0 0 16px 0; color: #475569; font-size: 14px; text-transform: uppercase; letter-spacing: 0.05em;">
+                                    As-Built Programme
+                                </h4>
+                                <div style="font-size: 48px; font-weight: 700; 
+                                          color: ${isDelayed ? '#dc2626' : '#059669'}; margin-bottom: 12px;">
+                                    ${Math.round(analysis.actual_progress || 0)}%
+                                </div>
+                                <div style="background: #e2e8f0; height: 12px; border-radius: 6px; overflow: hidden;">
+                                    <div style="width: ${analysis.actual_progress || 0}%; height: 100%; 
+                                              background: linear-gradient(90deg, ${isDelayed ? '#dc2626, #991b1b' : '#059669, #047857'});"></div>
+                                </div>
+                                <p style="margin: 12px 0 0 0; color: #64748b; font-size: 14px;">
+                                    Actual progress at ${emailDate.toLocaleDateString()}
+                                </p>
+                            </div>
+                        </div>
+                        
+                        <!-- Timeline Visualization -->
+                        <div style="background: #f8fafc; padding: 24px; border-radius: 12px; margin-bottom: 30px;">
+                            <h4 style="margin: 0 0 20px 0; color: #1e293b;">Timeline Comparison</h4>
+                            
+                            <!-- Baseline Timeline -->
+                            <div style="margin-bottom: 16px;">
+                                <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                                    <span style="font-size: 12px; color: #64748b;">Baseline</span>
+                                    <span style="font-size: 12px; color: #64748b;">
+                                        ${new Date(analysis.baseline_start).toLocaleDateString()} - 
+                                        ${new Date(analysis.baseline_end).toLocaleDateString()}
+                                    </span>
+                                </div>
+                                <div style="background: #dbeafe; height: 24px; border-radius: 6px; position: relative;">
+                                    <div style="position: absolute; left: ${((emailDate - new Date(analysis.baseline_start)) / (new Date(analysis.baseline_end) - new Date(analysis.baseline_start))) * 100}%;
+                                              width: 3px; height: 100%; background: #1e40af; z-index: 1;"></div>
+                                </div>
+                            </div>
+                            
+                            <!-- Actual Timeline -->
+                            <div>
+                                <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                                    <span style="font-size: 12px; color: #64748b;">As-Built</span>
+                                    <span style="font-size: 12px; color: #64748b;">
+                                        ${new Date(analysis.actual_start).toLocaleDateString()} - 
+                                        ${new Date(analysis.actual_end).toLocaleDateString()}
+                                    </span>
+                                </div>
+                                <div style="background: ${isDelayed ? '#fee2e2' : '#d1fae5'}; height: 24px; border-radius: 6px; position: relative;">
+                                    <div style="position: absolute; left: ${((emailDate - new Date(analysis.actual_start)) / (new Date(analysis.actual_end) - new Date(analysis.actual_start))) * 100}%;
+                                              width: 3px; height: 100%; background: ${isDelayed ? '#dc2626' : '#059669'}; z-index: 1;"></div>
+                                </div>
+                            </div>
+                            
+                            <div style="text-align: center; margin-top: 12px; padding: 12px; 
+                                      background: white; border-radius: 6px;">
+                                <i class="fas fa-map-marker-alt" style="color: #3b82f6;"></i>
+                                <span style="margin-left: 8px; font-size: 14px; color: #64748b;">
+                                    Email sent at this point in time
+                                </span>
+                            </div>
+                        </div>
+                        
+                        <!-- Critical Path Status -->
+                        ${analysis.is_critical_path ? `
+                            <div style="background: #fef3c7; border-left: 4px solid #f59e0b; 
+                                      padding: 16px; border-radius: 8px; margin-bottom: 30px;">
+                                <div style="display: flex; align-items: center; gap: 12px;">
+                                    <i class="fas fa-fire" style="font-size: 24px; color: #f59e0b;"></i>
+                                    <div>
+                                        <strong style="color: #92400e;">Critical Path Activity</strong>
+                                        <p style="margin: 4px 0 0 0; color: #78350f; font-size: 14px;">
+                                            This activity is on the critical path. Any delays will impact the project completion date.
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                        ` : ''}
+                        
+                        <!-- Action Buttons -->
+                        <div style="display: flex; gap: 12px; justify-content: flex-end;">
+                            <button onclick="exportProgrammeAnalysis('${emailId}', '${activityId}')"
+                                    style="background: white; border: 1px solid #e2e8f0; color: #475569; 
+                                         padding: 12px 24px; border-radius: 8px; cursor: pointer; 
+                                         font-weight: 500; display: flex; align-items: center; gap: 8px;">
+                                <i class="fas fa-download"></i> Export Report
+                            </button>
+                            <button onclick="this.closest('div[style*=fixed]').remove()"
+                                    style="background: #3b82f6; color: white; border: none; 
+                                         padding: 12px 24px; border-radius: 8px; cursor: pointer; 
+                                         font-weight: 500;">
+                                Close
+                            </button>
+                        </div>
+                    </div>
+                `;
+                
+                document.body.appendChild(modal);
+                
+            } catch (error) {
+                console.error('Error loading programme analysis:', error);
+                alert('Failed to load programme analysis. Make sure you have uploaded both baseline and as-built programmes.');
+            } finally {
+                showLoading(false);
+            }
+        };
+
+        /**
+         * Export programme analysis as PDF report
+         */
+        window.exportProgrammeAnalysis = async function(emailId, activityId) {
+            try {
+                showLoading(true, 'Generating report...');
+                
+                const response = await fetch(
+                    `http://localhost:8010/api/cases/${caseId}/evidence/${emailId}/programme-report?activity=${activityId}&format=pdf`,
+                    {
+                        headers: {
+                            'Authorization': `Bearer ${localStorage.getItem('token')}`
+                        }
+                    }
+                );
+                
+                if (!response.ok) {
+                    throw new Error('Failed to generate report');
+                }
+                
+                // Download the PDF
+                const blob = await response.blob();
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `programme-analysis-${activityId}-${new Date().toISOString().split('T')[0]}.pdf`;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                window.URL.revokeObjectURL(url);
+                
+                showNotification('Report downloaded successfully', 'success');
+                
+            } catch (error) {
+                console.error('Error exporting report:', error);
+                alert('Failed to export report');
+            } finally {
+                showLoading(false);
+            }
+        };
+
+        /**
+         * Show notification message
+         */
+        function showNotification(message, type = 'info') {
+            const notification = document.createElement('div');
+            const colors = {
+                success: { bg: '#d1fae5', border: '#059669', text: '#065f46' },
+                error: { bg: '#fee2e2', border: '#dc2626', text: '#991b1b' },
+                info: { bg: '#dbeafe', border: '#3b82f6', text: '#1e40af' }
+            };
+            const color = colors[type] || colors.info;
+            
+            notification.style.cssText = `
+                position: fixed; top: 20px; right: 20px; z-index: 10001;
+                background: ${color.bg}; border-left: 4px solid ${color.border};
+                color: ${color.text}; padding: 16px 20px; border-radius: 8px;
+                box-shadow: 0 4px 12px rgba(0,0,0,0.15); font-weight: 500;
+                animation: slideIn 0.3s ease-out;
+            `;
+            notification.textContent = message;
+            
+            document.body.appendChild(notification);
+            
+            setTimeout(() => {
+                notification.style.animation = 'slideOut 0.3s ease-in';
+                setTimeout(() => notification.remove(), 300);
+            }, 3000);
+        }
+
+        // ==================== END PROGRAMME ANALYSIS FUNCTIONS ====================
 
         // Set AG-Grid Enterprise license key (Trial - Valid until 30 November 2025)
         agGrid.LicenseManager.setLicenseKey("[TRIAL]_this_{AG_Charts_and_AG_Grid}_Enterprise_key_{AG-104897}_is_granted_for_evaluation_only___Use_in_production_is_not_permitted___Please_report_misuse_to_legal@ag-grid.com___For_help_with_purchasing_a_production_key_please_contact_info@ag-grid.com___You_are_granted_a_{Single_Application}_Developer_License_for_one_application_only___All_Front-End_JavaScript_developers_working_on_the_application_would_need_to_be_licensed___This_key_will_deactivate_on_{30 November 2025}____[v3]_[0102]_MTc2NDQ2MDgwMDAwMA==a97c0b249a2f0bd2a1ed2c10804b61b5");
