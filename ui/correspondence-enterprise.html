@@ -1172,6 +1172,261 @@
             },
 
             {
+                headerName: 'Programme',
+                field: 'programme',
+                width: 150,
+                editable: true,
+                cellEditor: 'agSelectCellEditor',
+                cellEditorParams: {
+                    values: ['Design', 'Construction', 'Procurement', 'Legal', 'Commercial', 'Technical', 'Other']
+                },
+                cellStyle: params => {
+                    const colors = {
+                        'Design': { bg: '#dbeafe', text: '#1e40af' },
+                        'Construction': { bg: '#fed7aa', text: '#92400e' },
+                        'Procurement': { bg: '#fce7f3', text: '#831843' },
+                        'Legal': { bg: '#ede9fe', text: '#5b21b6' },
+                        'Commercial': { bg: '#d1fae5', text: '#065f46' },
+                        'Technical': { bg: '#e0e7ff', text: '#3730a3' },
+                        'Other': { bg: '#f3f4f6', text: '#374151' }
+                    };
+                    const color = colors[params.value] || colors['Other'];
+                    return {
+                        backgroundColor: color.bg,
+                        color: color.text,
+                        fontWeight: '500',
+                        padding: '6px 12px',
+                        borderRadius: '6px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center'
+                    };
+                },
+                filter: 'agSetColumnFilter',
+                filterParams: {
+                    buttons: ['apply', 'clear', 'reset']
+                }
+            },
+
+            {
+                headerName: 'Category',
+                field: 'category',
+                width: 180,
+                editable: true,
+                cellEditor: 'agSelectCellEditor',
+                cellEditorParams: {
+                    values: [
+                        'Site Instruction',
+                        'Variation',
+                        'Delay Notice',
+                        'Compensation Event',
+                        'Early Warning',
+                        'Payment',
+                        'Meeting Minutes',
+                        'Technical Query',
+                        'Progress Update',
+                        'Contract Document',
+                        'Safety/H&S',
+                        'Quality Issue',
+                        'General'
+                    ]
+                },
+                cellRenderer: params => {
+                    if (!params.value) return '-';
+                    const icons = {
+                        'Site Instruction': '📋',
+                        'Variation': '🔄',
+                        'Delay Notice': '⏱️',
+                        'Compensation Event': '💰',
+                        'Early Warning': '⚠️',
+                        'Payment': '💳',
+                        'Meeting Minutes': '📝',
+                        'Technical Query': '❓',
+                        'Progress Update': '📊',
+                        'Contract Document': '📄',
+                        'Safety/H&S': '🦺',
+                        'Quality Issue': '🔍',
+                        'General': '📧'
+                    };
+                    return `<div style="display: flex; align-items: center; gap: 6px;">
+                        <span style="font-size: 1.1em;">${icons[params.value] || '📧'}</span>
+                        <span>${params.value}</span>
+                    </div>`;
+                },
+                filter: 'agSetColumnFilter',
+                filterParams: {
+                    buttons: ['apply', 'clear', 'reset']
+                }
+            },
+
+            {
+                headerName: 'Keywords',
+                field: 'keywords',
+                width: 200,
+                wrapText: true,
+                autoHeight: true,
+                editable: true,
+                cellStyle: {
+                    'white-space': 'normal',
+                    'line-height': '1.4',
+                    'padding-top': '8px',
+                    'padding-bottom': '8px'
+                },
+                cellRenderer: params => {
+                    if (!params.value) return '-';
+                    const keywords = params.value.split(',').map(k => k.trim()).filter(k => k);
+                    if (keywords.length === 0) return '-';
+                    
+                    return `<div style="display: flex; flex-wrap: wrap; gap: 4px;">
+                        ${keywords.map(keyword => `
+                            <span style="background: #dbeafe; color: #1e40af; padding: 2px 8px; 
+                                       border-radius: 12px; font-size: 0.75rem; font-weight: 500;">
+                                ${keyword}
+                            </span>
+                        `).join('')}
+                    </div>`;
+                },
+                valueGetter: params => {
+                    // Auto-extract keywords from wizard configuration or email content
+                    const existingKeywords = params.data.keywords || '';
+                    if (existingKeywords) return existingKeywords;
+                    
+                    // Try to match against project keywords from wizard
+                    // This will be populated when wizard integration is complete
+                    return '';
+                },
+                filter: 'agTextColumnFilter'
+            },
+
+            {
+                headerName: 'Stakeholder',
+                field: 'stakeholder',
+                width: 180,
+                editable: true,
+                cellEditor: 'agSelectCellEditor',
+                cellEditorParams: {
+                    values: [
+                        'Main Contractor',
+                        'Council',
+                        'Employers Agent',
+                        'Project Manager',
+                        'Client',
+                        'Building Control',
+                        'Subcontractor',
+                        'Client Management Team',
+                        'Other'
+                    ]
+                },
+                valueGetter: params => {
+                    // Auto-detect stakeholder from email sender
+                    const existingStakeholder = params.data.stakeholder || '';
+                    if (existingStakeholder) return existingStakeholder;
+                    
+                    // Try to match against project stakeholders from wizard
+                    // This will be populated when wizard integration is complete
+                    const from = params.data.email_from || '';
+                    // Add logic here to match against wizard stakeholders
+                    return '';
+                },
+                filter: 'agSetColumnFilter',
+                filterParams: {
+                    buttons: ['apply', 'clear', 'reset']
+                }
+            },
+
+            {
+                headerName: 'Priority',
+                field: 'priority',
+                width: 120,
+                editable: true,
+                cellEditor: 'agSelectCellEditor',
+                cellEditorParams: {
+                    values: ['High', 'Medium', 'Low']
+                },
+                cellStyle: params => {
+                    const colors = {
+                        'High': { bg: '#fee2e2', text: '#991b1b' },
+                        'Medium': { bg: '#fef3c7', text: '#92400e' },
+                        'Low': { bg: '#d1fae5', text: '#065f46' }
+                    };
+                    const color = colors[params.value] || { bg: 'transparent', text: '#6b7280' };
+                    return {
+                        backgroundColor: color.bg,
+                        color: color.text,
+                        fontWeight: '600',
+                        padding: '4px 8px',
+                        borderRadius: '6px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center'
+                    };
+                },
+                filter: 'agSetColumnFilter',
+                filterParams: {
+                    buttons: ['apply', 'clear', 'reset']
+                }
+            },
+
+            {
+                headerName: 'Status',
+                field: 'status',
+                width: 150,
+                editable: true,
+                cellEditor: 'agSelectCellEditor',
+                cellEditorParams: {
+                    values: ['New', 'Review', 'Action Required', 'Responded', 'Closed', 'Archived']
+                },
+                cellRenderer: params => {
+                    if (!params.value) return '-';
+                    const icons = {
+                        'New': '🆕',
+                        'Review': '👀',
+                        'Action Required': '⚡',
+                        'Responded': '✅',
+                        'Closed': '🔒',
+                        'Archived': '📦'
+                    };
+                    const colors = {
+                        'New': { bg: '#dbeafe', text: '#1e40af' },
+                        'Review': { bg: '#fef3c7', text: '#92400e' },
+                        'Action Required': { bg: '#fee2e2', text: '#991b1b' },
+                        'Responded': { bg: '#d1fae5', text: '#065f46' },
+                        'Closed': { bg: '#f3f4f6', text: '#374151' },
+                        'Archived': { bg: '#e5e7eb', text: '#6b7280' }
+                    };
+                    const color = colors[params.value] || colors['New'];
+                    return `<div style="display: inline-flex; align-items: center; gap: 6px; 
+                                 background: ${color.bg}; color: ${color.text}; 
+                                 padding: 4px 12px; border-radius: 12px; font-weight: 500; font-size: 0.875rem;">
+                        <span>${icons[params.value] || '📧'}</span>
+                        <span>${params.value}</span>
+                    </div>`;
+                },
+                filter: 'agSetColumnFilter',
+                filterParams: {
+                    buttons: ['apply', 'clear', 'reset']
+                }
+            },
+
+            {
+                headerName: 'Notes',
+                field: 'notes',
+                width: 250,
+                editable: true,
+                wrapText: true,
+                autoHeight: true,
+                cellStyle: {
+                    'white-space': 'normal',
+                    'line-height': '1.4',
+                    'padding-top': '8px',
+                    'padding-bottom': '8px',
+                    'font-style': 'italic',
+                    'color': '#6b7280'
+                },
+                filter: 'agTextColumnFilter'
+            },
+
+            {
                 headerName: 'Thread ID',
                 field: 'thread_id',
                 width: 120,
