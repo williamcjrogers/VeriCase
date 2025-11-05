@@ -1,21 +1,22 @@
 #!/usr/bin/env python3
-"""Railway startup script with proper PORT handling"""
+"""Railway startup script - uses Railway's auto-injected PORT"""
 import os
 import subprocess
 import sys
 
-# Get PORT from environment (Railway sets this automatically)
-port = os.getenv('PORT', os.getenv('API_PORT', '8000'))
-
-print(f"🔄 Running database migrations...")
+print("🔄 Running database migrations...")
 migration_result = subprocess.run(['alembic', 'upgrade', 'head'], check=False)
 if migration_result.returncode != 0:
     print("⚠️  Migration failed, continuing anyway...")
 
-print(f"🚀 Starting Uvicorn on port {port}...")
-print(f"📍 Environment: PORT={os.getenv('PORT')}, API_PORT={os.getenv('API_PORT')}")
+# Railway automatically injects PORT environment variable
+# If not present, use API_PORT or default 8000
+port = int(os.environ.get('PORT', os.environ.get('API_PORT', '8000')))
 
-# Start uvicorn
+print(f"🚀 Starting Uvicorn on port {port}...")
+print(f"📍 PORT={port} (from env: PORT={os.getenv('PORT')}, API_PORT={os.getenv('API_PORT')})")
+
+# Start uvicorn with integer port
 os.execvp('uvicorn', [
     'uvicorn',
     'app.main:app',
