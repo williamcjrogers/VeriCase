@@ -42,9 +42,10 @@ COPY api/migrations /code/migrations
 # Copy UI files for serving
 COPY ui /code/ui
 
-# Copy startup script
+# Copy startup scripts
 COPY start.sh /code/start.sh
-RUN chmod +x /code/start.sh
+COPY start.py /code/start.py
+RUN chmod +x /code/start.sh /code/start.py
 
 EXPOSE 8000
-CMD ["/code/start.sh"]
+CMD ["python3", "/code/start.py"]
