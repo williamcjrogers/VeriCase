@@ -562,8 +562,9 @@
                 <p style="color: var(--muted); margin-top: 0.5rem;">Email correspondence with As-Planned and As-Built schedule tracking</p>
               </div>
               <div class="corr-actions">
+                <button class="btn-primary" onclick="openCorrespondenceEnterprise()">📧 Open AG Grid View</button>
                 <button class="btn-secondary" onclick="exportToCSV()">📥 Export CSV</button>
-                <button class="btn-primary" onclick="showUploadModal()">📊 Upload Programme</button>
+                <button class="btn-secondary" onclick="showUploadModal()">📊 Upload Programme</button>
               </div>
             </div>
 
@@ -923,6 +924,12 @@
       a.href = url;
       a.download = `correspondence_case${CASE_ID}_${new Date().toISOString().split('T')[0]}.csv`;
       a.click();
+    }
+
+    function openCorrespondenceEnterprise() {
+      const token = localStorage.getItem('token');
+      const caseId = CASE_ID || localStorage.getItem('activeCaseId');
+      window.location.href = `correspondence-enterprise.html?token=${token}&caseId=${caseId}`;
     }
 
     function showUploadModal() {

@@ -36,6 +36,30 @@
             color: white;
             padding: 30px;
             text-align: center;
+            position: relative;
+        }
+        
+        .wizard-header-nav {
+            position: absolute;
+            top: 15px;
+            right: 20px;
+            display: flex;
+            gap: 10px;
+        }
+        
+        .wizard-header-nav button {
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            padding: 8px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.2s;
+        }
+        
+        .wizard-header-nav button:hover {
+            background: rgba(255, 255, 255, 0.3);
         }
 
         .wizard-header h1 {
@@ -370,6 +394,11 @@
 <body>
     <div class="wizard-container">
         <div class="wizard-header">
+            <div class="wizard-header-nav">
+                <button onclick="window.location.href='analysis.html?token=' + localStorage.getItem('token') + '&caseId=' + localStorage.getItem('currentCaseId')">
+                    <i class="fas fa-home"></i> Home
+                </button>
+            </div>
             <h1><i class="fas fa-folder-plus"></i> Create Profile</h1>
             <p>Set up your Project or Case to start managing evidence</p>
         </div>

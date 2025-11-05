@@ -99,13 +99,12 @@ def startup():
 @app.post("/auth/signup")  # Keep old endpoint for compatibility
 def signup(payload: dict = Body(...), db: Session = Depends(get_db)):
     email=(payload.get("email") or "").strip().lower(); password=payload.get("password") or ""
-    full_name = payload.get("full_name", "")
-    if not email or not password: raise HTTPException(400,"email and password required")
+    display_name = (payload.get("display_name") or payload.get("full_name") or "").strip()
     from .models import User
     if db.query(User).filter(User.email==email).first(): raise HTTPException(409,"email already registered")
-    user=User(email=email, password_hash=hash_password(password), full_name=full_name); db.add(user); db.commit()
+    user=User(email=email, password_hash=hash_password(password), display_name=display_name or None); db.add(user); db.commit()
     token=sign_token(str(user.id), user.email)
-    return {"access_token": token, "token_type": "bearer", "user":{"id":str(user.id),"email":user.email,"full_name":full_name}}
+    return {"access_token": token, "token_type": "bearer", "user":{"id":str(user.id),"email":user.email,"display_name":display_name,"full_name":display_name}}
 
 @app.post("/api/auth/login")
 @app.post("/auth/login")  # Keep old endpoint for compatibility
@@ -114,13 +113,61 @@ def login(payload: dict = Body(...), db: Session = Depends(get_db)):
     user=db.query(User).filter(User.email==email).first()
     if not user or not verify_password(password, user.password_hash): raise HTTPException(401,"invalid credentials")
     token=sign_token(str(user.id), user.email)
-    return {"access_token": token, "token_type": "bearer", "user":{"id":str(user.id),"email":user.email,"full_name":user.full_name}}
+    display_name = getattr(user, "display_name", None) or ""
+    return {"access_token": token, "token_type": "bearer", "user":{"id":str(user.id),"email":user.email,"display_name":display_name,"full_name":display_name}}
 
 @app.get("/api/auth/me")
 def get_current_user_info(creds: HTTPAuthorizationCredentials = Depends(bearer), db: Session = Depends(get_db)):
     from .security import current_user
     user = current_user(creds, db)
-    return {"id":str(user.id),"email":user.email,"full_name":user.full_name}
+    display_name = getattr(user, "display_name", None) or ""
+    return {"id":str(user.id),"email":user.email,"display_name":display_name,"full_name":display_name}
+
+# Projects/Cases
+@app.post("/api/projects")
+@app.post("/api/cases")
+def create_case(payload: dict = Body(...), db: Session = Depends(get_db), user: User = Depends(current_user)):
+    from .models import Case, Company, UserCompany
+    
+    # Get or create company for this user
+    user_company = db.query(UserCompany).filter(UserCompany.user_id == user.id, UserCompany.is_primary == True).first()
+    if user_company:
+        company = user_company.company
+    else:
+        # Create new company
+        company = Company(name=payload.get("company_name") or "My Company")
+        db.add(company)
+        db.flush()
+        # Link user to company
+        user_company = UserCompany(user_id=user.id, company_id=company.id, role="admin", is_primary=True)
+        db.add(user_company)
+        db.flush()
+    
+    # Extract case data from wizard payload
+    details = payload.get("details", {})
+    stakeholders = payload.get("stakeholders", {})
+    
+    case = Case(
+        case_number=details.get("projectCode") or f"CASE-{uuid4().hex[:8].upper()}",
+        name=details.get("projectName") or "Untitled Case",
+        description=details.get("description") or "",
+        project_name=details.get("projectName"),
+        contract_type=payload.get("contractType") or stakeholders.get("contractType"),
+        status="active",
+        owner_id=user.id,
+        company_id=company.id
+    )
+    db.add(case)
+    db.commit()
+    db.refresh(case)
+    
+    return {
+        "id": str(case.id),
+        "case_number": case.case_number,
+        "name": case.name,
+        "status": case.status
+    }
+
 # Uploads (presign and complete)
 @app.post("/uploads/init")
 def init_upload(body: dict = Body(...), user: User = Depends(current_user)):

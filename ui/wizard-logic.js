@@ -761,8 +761,11 @@ async function submitWizard() {
         // Clear draft
         localStorage.removeItem('wizardDraft');
         
-        // Redirect to correspondence
-        window.location.href = `/ui/correspondence-enterprise.html?${wizardState.profileType}Id=${result.id}`;
+        // Store case ID for analysis page
+        localStorage.setItem('currentCaseId', result.id);
+        
+        // Redirect to analysis.html (main homepage/hub)
+        window.location.href = `/ui/analysis.html?token=${token}&caseId=${result.id}`;
         
     } catch (error) {
         console.error('Error creating profile:', error);

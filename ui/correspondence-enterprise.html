@@ -465,6 +465,9 @@
             </div>
         </div>
         <div class="header-right">
+            <button class="btn" onclick="goToDashboard()">
+                <i class="fas fa-home"></i> Dashboard
+            </button>
             <button class="btn" onclick="exportToExcel()">
                 <i class="fas fa-file-excel"></i> Export Excel
             </button>
@@ -1994,6 +1997,18 @@
 
         function refreshData() {
             loadEmails();
+        }
+
+        function goToDashboard() {
+            const token = localStorage.getItem('token');
+            const caseId = localStorage.getItem('currentCaseId');
+            if (token && caseId) {
+                window.location.href = `dashboard.html?token=${token}&caseId=${caseId}`;
+            } else if (token) {
+                window.location.href = `dashboard.html?token=${token}`;
+            } else {
+                window.location.href = 'dashboard.html';
+            }
         }
 
         function showLoading(show) {

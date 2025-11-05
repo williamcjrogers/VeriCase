@@ -1,0 +1,496 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VeriCase Analysis Platform</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            background: linear-gradient(135deg, #E6F7F7 0%, #FFFFFF 100%);
+            min-height: 100vh;
+        }
+        
+        .navbar {
+            background: linear-gradient(180deg, #069494 0%, #057676 100%);
+            padding: 1rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .navbar h1 {
+            color: white;
+            font-size: 1.5rem;
+        }
+        
+        .nav-links {
+            display: flex;
+            gap: 1rem;
+        }
+        
+        .nav-btn {
+            padding: 0.5rem 1rem;
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-decoration: none;
+        }
+        
+        .nav-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+        
+        .dashboard-container {
+            max-width: 1400px;
+            margin: 2rem auto;
+            padding: 0 2rem;
+        }
+        
+        .welcome-section {
+            background: white;
+            padding: 2rem;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            margin-bottom: 2rem;
+        }
+        
+        .welcome-section h2 {
+            color: #057676;
+            margin-bottom: 0.5rem;
+        }
+        
+        .case-info {
+            display: flex;
+            gap: 2rem;
+            margin-top: 1rem;
+            flex-wrap: wrap;
+        }
+        
+        .case-info-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .case-info-item label {
+            font-weight: 600;
+            color: #666;
+        }
+        
+        .stats-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+        
+        .stat-card {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+        
+        .stat-number {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #057676;
+        }
+        
+        .stat-label {
+            color: #666;
+            font-size: 0.9rem;
+            margin-top: 0.5rem;
+        }
+        
+        .actions-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+        
+        .action-card {
+            background: white;
+            border-radius: 12px;
+            padding: 2rem;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            transition: transform 0.3s, box-shadow 0.3s;
+            cursor: pointer;
+        }
+        
+        .action-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 8px 12px rgba(0,0,0,0.15);
+        }
+        
+        .action-icon {
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(135deg, #069494 0%, #057676 100%);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 1rem;
+            font-size: 28px;
+        }
+        
+        .action-card h3 {
+            color: #057676;
+            margin-bottom: 0.5rem;
+        }
+        
+        .action-card p {
+            color: #666;
+            margin-bottom: 1rem;
+            font-size: 0.95rem;
+        }
+        
+        .action-btn {
+            padding: 0.75rem 1.5rem;
+            background: linear-gradient(180deg, #069494 0%, #057676 100%);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s;
+            width: 100%;
+        }
+        
+        .action-btn:hover {
+            background: linear-gradient(180deg, #057676 0%, #045555 100%);
+        }
+        
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .modal.active {
+            display: flex;
+        }
+        
+        .modal-content {
+            background: white;
+            padding: 2rem;
+            border-radius: 12px;
+            width: 90%;
+            max-width: 600px;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+        
+        .upload-zone {
+            border: 2px dashed #069494;
+            border-radius: 8px;
+            padding: 3rem;
+            text-align: center;
+            margin: 2rem 0;
+            transition: all 0.3s;
+            cursor: pointer;
+        }
+        
+        .upload-zone.dragover {
+            background: rgba(6,148,148,0.1);
+            border-color: #057676;
+        }
+        
+        .upload-icon {
+            font-size: 48px;
+            color: #069494;
+            margin-bottom: 1rem;
+        }
+        
+        .upload-progress {
+            margin-top: 1rem;
+        }
+        
+        progress {
+            width: 100%;
+            height: 30px;
+            border-radius: 6px;
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar">
+        <h1>🔍 VeriCase Analysis Platform</h1>
+        <div class="nav-links">
+            <button class="nav-btn" onclick="location.href='dashboard.html?token=' + getToken()">🏠 Dashboard</button>
+            <button class="nav-btn" onclick="location.href='wizard.html?token=' + getToken()">📋 New Case</button>
+            <button class="nav-btn" onclick="location.href='correspondence-enterprise.html?token=' + getToken()">📧 Correspondence</button>
+            <button class="nav-btn" onclick="logout()">🚪 Sign Out</button>
+        </div>
+    </nav>
+
+    <div class="dashboard-container">
+        <div class="welcome-section">
+            <h2>Welcome to VeriCase Analysis Platform</h2>
+            <p>Manage your case evidence and analyze correspondence</p>
+            <div class="case-info">
+                <div class="case-info-item">
+                    <label>Current Case:</label>
+                    <span id="caseName">Loading...</span>
+                </div>
+                <div class="case-info-item">
+                    <label>Case Code:</label>
+                    <span id="caseCode">Loading...</span>
+                </div>
+                <div class="case-info-item">
+                    <label>Status:</label>
+                    <span style="color: #069494; font-weight: bold;">Active</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="stats-container">
+            <div class="stat-card">
+                <div class="stat-number" id="emailCount">0</div>
+                <div class="stat-label">Emails Processed</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="documentCount">0</div>
+                <div class="stat-label">Documents</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="stakeholderCount">0</div>
+                <div class="stat-label">Stakeholders</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="keywordCount">0</div>
+                <div class="stat-label">Keywords Tracked</div>
+            </div>
+        </div>
+
+        <div class="actions-grid">
+            <div class="action-card" onclick="openUploadModal()">
+                <div class="action-icon">📤</div>
+                <h3>Upload Evidence</h3>
+                <p>Import PST files, emails, and documents for analysis</p>
+                <button class="action-btn">Upload Files</button>
+            </div>
+
+            <div class="action-card" onclick="goToCorrespondence()">
+                <div class="action-icon">📧</div>
+                <h3>Correspondence Analysis</h3>
+                <p>Analyze emails with AI-powered insights and timeline views</p>
+                <button class="action-btn">View Correspondence</button>
+            </div>
+
+            <div class="action-card" onclick="location.href='wizard.html?token=' + getToken()">
+                <div class="action-icon">⚙️</div>
+                <h3>Case Settings</h3>
+                <p>Manage stakeholders, keywords, and case details</p>
+                <button class="action-btn">Configure Case</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="uploadModal" class="modal">
+        <div class="modal-content">
+            <h2 style="color: #057676; margin-bottom: 1rem;">Upload Evidence</h2>
+            
+            <div class="upload-zone" id="dropZone" onclick="document.getElementById('fileInput').click()">
+                <div class="upload-icon">📁</div>
+                <h3>Drag and drop files here</h3>
+                <p style="margin: 1rem 0;">or click to browse</p>
+                <input type="file" id="fileInput" multiple accept=".pst,.ost,.eml,.msg,.pdf,.docx,.xlsx" style="display: none;">
+                <p style="margin-top: 1rem; font-size: 0.9rem; color: #666;">
+                    Supported formats: PST, OST, EML, MSG, PDF, DOCX, XLSX
+                </p>
+            </div>
+
+            <div id="uploadProgress" class="upload-progress" style="display: none;">
+                <h4>Uploading files...</h4>
+                <progress id="progressBar" max="100" value="0"></progress>
+                <p id="progressText" style="text-align: center; margin-top: 0.5rem;">0%</p>
+            </div>
+
+            <div style="display: flex; gap: 1rem; justify-content: flex-end; margin-top: 2rem;">
+                <button class="nav-btn" style="background: #ccc; color: #333; border: none;" onclick="closeUploadModal()">Cancel</button>
+                <button class="action-btn" id="startUploadBtn" onclick="startUpload()" style="width: auto;">Start Processing</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function getToken() {
+            return new URLSearchParams(window.location.search).get('token') || localStorage.getItem('token') || '';
+        }
+
+        async function loadCaseInfo() {
+            const token = getToken();
+            const caseId = new URLSearchParams(window.location.search).get('caseId') || 
+                          new URLSearchParams(window.location.search).get('case_id') ||
+                          localStorage.getItem('currentCaseId');
+            
+            if (token) {
+                localStorage.setItem('token', token);
+            }
+            
+            if (caseId) {
+                localStorage.setItem('currentCaseId', caseId);
+                try {
+                    const response = await fetch(`http://localhost:8010/api/cases/${caseId}`, {
+                        headers: { 'Authorization': `Bearer ${token}` }
+                    });
+                    if (response.ok) {
+                        const caseData = await response.json();
+                        document.getElementById('caseName').textContent = caseData.name || 'Unnamed Case';
+                        document.getElementById('caseCode').textContent = caseData.case_number || 'N/A';
+                    }
+                } catch (error) {
+                    console.error('Error loading case info:', error);
+                }
+            } else {
+                document.getElementById('caseName').textContent = 'No case selected';
+                document.getElementById('caseCode').textContent = 'N/A';
+            }
+        }
+
+        function openUploadModal() {
+            document.getElementById('uploadModal').classList.add('active');
+        }
+
+        function closeUploadModal() {
+            document.getElementById('uploadModal').classList.remove('active');
+            document.getElementById('fileInput').value = '';
+            document.getElementById('uploadProgress').style.display = 'none';
+        }
+
+        const dropZone = document.getElementById('dropZone');
+        const fileInput = document.getElementById('fileInput');
+
+        dropZone.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            dropZone.classList.add('dragover');
+        });
+
+        dropZone.addEventListener('dragleave', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            dropZone.classList.remove('dragover');
+        });
+
+        dropZone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            dropZone.classList.remove('dragover');
+            fileInput.files = e.dataTransfer.files;
+        });
+
+        async function startUpload() {
+            const files = fileInput.files;
+            if (!files.length) {
+                alert('Please select files to upload');
+                return;
+            }
+
+            const token = getToken();
+            const caseId = localStorage.getItem('currentCaseId');
+            
+            document.getElementById('uploadProgress').style.display = 'block';
+            document.getElementById('startUploadBtn').disabled = true;
+            
+            for (let i = 0; i < files.length; i++) {
+                const file = files[i];
+                const progress = Math.round(((i + 1) / files.length) * 100);
+                document.getElementById('progressBar').value = progress;
+                document.getElementById('progressText').textContent = `${progress}% - Uploading ${file.name}`;
+
+                try {
+                    // Initialize upload
+                    const initResponse = await fetch('http://localhost:8010/uploads/init', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${token}`
+                        },
+                        body: JSON.stringify({
+                            filename: file.name,
+                            content_type: file.type || 'application/octet-stream',
+                            size: file.size
+                        })
+                    });
+
+                    if (!initResponse.ok) throw new Error('Failed to initialize upload');
+                    
+                    const { upload_id, upload_url, s3_key } = await initResponse.json();
+
+                    // Upload to S3
+                    const uploadResponse = await fetch(upload_url, {
+                        method: 'PUT',
+                        body: file,
+                        headers: {
+                            'Content-Type': file.type || 'application/octet-stream'
+                        }
+                    });
+
+                    if (!uploadResponse.ok) throw new Error('Failed to upload file');
+
+                    // Complete upload
+                    const completeResponse = await fetch('http://localhost:8010/uploads/complete', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${token}`
+                        },
+                        body: JSON.stringify({
+                            upload_id: upload_id,
+                            filename: file.name,
+                            content_type: file.type || 'application/octet-stream',
+                            size: file.size,
+                            case_id: caseId,
+                            company_id: '1'
+                        })
+                    });
+
+                    if (!completeResponse.ok) throw new Error('Failed to complete upload');
+
+                } catch (error) {
+                    console.error('Upload error:', error);
+                    alert(`Failed to upload ${file.name}. Please try again.`);
+                    document.getElementById('startUploadBtn').disabled = false;
+                    return;
+                }
+            }
+
+            alert('Files uploaded successfully! Processing will continue in the background.');
+            closeUploadModal();
+            loadCaseInfo();
+        }
+
+        function goToCorrespondence() {
+            const token = getToken();
+            const caseId = localStorage.getItem('currentCaseId');
+            location.href = `correspondence-enterprise.html?token=${token}&caseId=${caseId}`;
+        }
+
+        function logout() {
+            localStorage.removeItem('token');
+            localStorage.removeItem('currentCaseId');
+            window.location.href = 'http://localhost:3000/login';
+        }
+
+        loadCaseInfo();
+    </script>
+</body>
+</html>
