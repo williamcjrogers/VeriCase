@@ -47,5 +47,5 @@ COPY start.sh /code/start.sh
 COPY start.py /code/start.py
 RUN chmod +x /code/start.sh /code/start.py
 
-EXPOSE 8000
+EXPOSE 8010
 CMD ["python3", "/code/start.py"]

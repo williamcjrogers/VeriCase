@@ -10,8 +10,8 @@ if migration_result.returncode != 0:
     print("⚠️  Migration failed, continuing anyway...")
 
 # Railway automatically injects PORT environment variable
-# If not present, use API_PORT or default 8000
-port = int(os.environ.get('PORT', os.environ.get('API_PORT', '8000')))
+# If not present, use API_PORT or default 8010
+port = int(os.environ.get('PORT', os.environ.get('API_PORT', '8010')))
 
 print(f"🚀 Starting Uvicorn on port {port}...")
 print(f"📍 PORT={port} (from env: PORT={os.getenv('PORT')}, API_PORT={os.getenv('API_PORT')})")
