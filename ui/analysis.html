@@ -721,10 +721,15 @@
     // ===========================
     const API_BASE = window.location.origin;
 
-    // Check if already logged in
+    // Check if already logged in and have a case selected
     const token = localStorage.getItem('token');
-    if (token) {
+    const activeCaseId = localStorage.getItem('activeCaseId');
+    
+    if (token && activeCaseId) {
       showMainApp();
+    } else if (token && !activeCaseId) {
+      // Logged in but no case selected - go to wizard
+      window.location.href = 'wizard.html';
     }
 
     // Login handler
@@ -742,10 +747,11 @@
         if (!response.ok) throw new Error('Login failed');
 
         const data = await response.json();
-        localStorage.setItem('token', data.token);
+        localStorage.setItem('token', data.access_token || data.token);
         localStorage.setItem('email', email);
         
-        showMainApp();
+        // Redirect to wizard to select/create case
+        window.location.href = 'wizard.html';
       } catch (error) {
         alert('Login failed. Please check your credentials.');
       }

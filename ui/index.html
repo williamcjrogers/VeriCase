@@ -3741,11 +3741,27 @@ ${insights.summary || 'No summary available'}
       });
     }
 
-    // Correspondence navigation
+    // Correspondence navigation - automatically loads case with most emails
     const navCorrespondence = document.getElementById('nav-correspondence');
     if (navCorrespondence) {
-      navCorrespondence.addEventListener('click', () => {
-        window.location.href = 'correspondence-enterprise.html';
+      navCorrespondence.addEventListener('click', async () => {
+        try {
+          // Get the most recent case (wizard creates cases, so use the latest one)
+          const cases = await api('/cases');
+          if (cases && cases.length > 0) {
+            // Use the most recent case (first in the list)
+            const caseId = cases[0].id;
+            window.location.href = `correspondence-enterprise.html?caseId=${caseId}`;
+          } else {
+            // No cases yet - redirect to wizard to create one
+            alert('No cases found. Please create a case first.');
+            window.location.href = 'wizard.html';
+          }
+        } catch (error) {
+          console.error('Failed to load cases:', error);
+          // Fallback to wizard
+          window.location.href = 'wizard.html';
+        }
       });
     }
 

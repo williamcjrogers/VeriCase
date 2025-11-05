@@ -411,4 +411,160 @@
     async function loadFolders() {
       try {
         const data = await api('/folders');
-        const folders
+        const folders = data.folders || [];
+        
+        const html = folders.map(f => `
+          <div class="folder-item" onclick="loadFolder('${f.name}')">
+            📁 ${f.name}
+          </div>
+        `).join('');
+        
+        document.getElementById('folder-list').innerHTML = html;
+      } catch (err) {
+        console.error('Failed to load folders:', err);
+      }
+    }
+
+    // Load documents
+    async function loadDocuments() {
+      try {
+        const data = await api('/documents' + (currentPath ? `?folder=${encodeURIComponent(currentPath)}` : ''));
+        const documents = data.documents || [];
+        
+        const html = documents.map(doc => `
+          <div class="file-item" onclick="previewFile('${doc.document_id}', '${doc.filename}')">
+            <div class="file-icon">📄</div>
+            <div class="file-info">
+              <div class="file-name">${doc.filename}</div>
+              <div class="file-meta">${formatDate(doc.created_at)} • ${formatSize(doc.size_bytes)}</div>
+            </div>
+          </div>
+        `).join('');
+        
+        document.getElementById('file-list').innerHTML = html || '<p style="color: #999;">No files in this folder</p>';
+      } catch (err) {
+        console.error('Failed to load documents:', err);
+        showStatus('Failed to load documents: ' + err.message, 'error');
+      }
+    }
+
+    // Load specific folder
+    function loadFolder(path) {
+      currentPath = path;
+      document.getElementById('current-folder-title').textContent = path || 'All Files';
+      
+      // Update active state
+      document.querySelectorAll('.folder-item').forEach(item => {
+        item.classList.remove('active');
+      });
+      event.target.classList.add('active');
+      
+      loadDocuments();
+    }
+
+    // Preview file
+    function previewFile(docId, filename) {
+      document.getElementById('preview-title').textContent = filename;
+      document.getElementById('empty-state').style.display = 'none';
+      
+      const frame = document.getElementById('preview-frame');
+      frame.style.display = 'block';
+      frame.src = API_BASE + '/documents/' + docId + '/view?token=' + token;
+    }
+
+    // Close preview
+    function closePreview() {
+      document.getElementById('preview-title').textContent = 'Select a file to preview';
+      document.getElementById('empty-state').style.display = 'flex';
+      document.getElementById('preview-frame').style.display = 'none';
+    }
+
+    // Upload file
+    async function uploadFile() {
+      const input = document.createElement('input');
+      input.type = 'file';
+      input.multiple = true;
+      
+      input.onchange = async (e) => {
+        const files = e.target.files;
+        if (!files.length) return;
+        
+        showStatus('Uploading files...', 'info');
+        
+        for (const file of files) {
+          try {
+            const formData = new FormData();
+            formData.append('file', file);
+            if (currentPath) formData.append('folder', currentPath);
+            
+            const res = await fetch(API_BASE + '/documents/upload', {
+              method: 'POST',
+              headers: { 'Authorization': 'Bearer ' + token },
+              body: formData
+            });
+            
+            if (!res.ok) throw new Error('Upload failed');
+          } catch (err) {
+            showStatus('Failed to upload: ' + err.message, 'error');
+            return;
+          }
+        }
+        
+        showStatus('Files uploaded successfully!', 'success');
+        loadDocuments();
+      };
+      
+      input.click();
+    }
+
+    // New folder
+    async function newFolder() {
+      const name = prompt('Enter folder name:');
+      if (!name) return;
+      
+      try {
+        await api('/folders', 'POST', { name, parent: currentPath || null });
+        showStatus('Folder created!', 'success');
+        loadFolders();
+      } catch (err) {
+        showStatus('Failed to create folder: ' + err.message, 'error');
+      }
+    }
+
+    // Show status message
+    function showStatus(message, type) {
+      const div = document.getElementById('status-msg');
+      div.textContent = message;
+      div.className = 'status-msg ' + type;
+      div.style.display = 'block';
+      
+      setTimeout(() => {
+        div.style.display = 'none';
+      }, 3000);
+    }
+
+    // Format helpers
+    function formatDate(dateStr) {
+      if (!dateStr) return 'Unknown date';
+      const date = new Date(dateStr);
+      return date.toLocaleDateString() + ' ' + date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    }
+
+    function formatSize(bytes) {
+      if (!bytes) return '0 B';
+      const k = 1024;
+      const sizes = ['B', 'KB', 'MB', 'GB'];
+      const i = Math.floor(Math.log(bytes) / Math.log(k));
+      return Math.round(bytes / Math.pow(k, i) * 100) / 100 + ' ' + sizes[i];
+    }
+
+    // Initialize
+    if (token && userEmail) {
+      document.body.classList.add('authenticated');
+      document.getElementById('user-email').textContent = userEmail;
+      loadFolders();
+      loadDocuments();
+    }
+  </script>
+</body>
+</html>

@@ -761,11 +761,12 @@ async function submitWizard() {
         // Clear draft
         localStorage.removeItem('wizardDraft');
         
-        // Store case ID for analysis page
+        // Store case ID for future use
+        localStorage.setItem('activeCaseId', result.id);
         localStorage.setItem('currentCaseId', result.id);
         
-        // Redirect to analysis.html (main homepage/hub)
-        window.location.href = `/ui/analysis.html?token=${token}&caseId=${result.id}`;
+        // Redirect directly to correspondence with AG Grid
+        window.location.href = `/ui/correspondence-enterprise.html?caseId=${result.id}`;
         
     } catch (error) {
         console.error('Error creating profile:', error);

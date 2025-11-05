@@ -593,9 +593,17 @@
     <script src="https://cdn.jsdelivr.net/npm/ag-grid-enterprise@31.0.0/dist/ag-grid-enterprise.min.js"></script>
     
     <script>
-        // Get case ID from URL
+        // Get case ID from URL - check both caseId and case_id parameters
         const urlParams = new URLSearchParams(window.location.search);
-        const caseId = urlParams.get('case_id') || '00000000-0000-0000-0000-000000000001';
+        const caseId = urlParams.get('caseId') || urlParams.get('case_id');
+        
+        // Validate we have a case ID - STOP execution if invalid
+        if (!caseId || caseId === '00000000-0000-0000-0000-000000000001') {
+            alert('No case selected. Redirecting to case selection...');
+            window.location.href = 'wizard.html';
+            throw new Error('Invalid case ID - stopping execution'); // STOP HERE!
+        }
+        
         window.caseId = caseId; // Make it globally available for other functions
         
         let gridApi;
@@ -1667,7 +1675,7 @@
         // Initialize Grid
         document.addEventListener('DOMContentLoaded', function() {
             const gridDiv = document.querySelector('#emailGrid');
-            new agGrid.Grid(gridDiv, gridOptions);
+            gridApi = agGrid.createGrid(gridDiv, gridOptions);
             
             // Load emails
             loadEmails();
