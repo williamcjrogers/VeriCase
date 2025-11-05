@@ -42,5 +42,9 @@ COPY api/migrations /code/migrations
 # Copy UI files for serving
 COPY ui /code/ui
 
+# Copy startup script
+COPY start.sh /code/start.sh
+RUN chmod +x /code/start.sh
+
 EXPOSE 8000
-CMD ["sh", "-c", "alembic upgrade head && uvicorn app.main:app --host 0.0.0.0 --port $PORT"]
+CMD ["/code/start.sh"]
