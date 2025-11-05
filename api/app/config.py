@@ -1,4 +1,5 @@
 from pydantic_settings import BaseSettings
+from pydantic import field_validator
 import os
 
 class Settings(BaseSettings):
@@ -17,8 +18,16 @@ class Settings(BaseSettings):
     S3_SECRET_KEY: str = "changeme"  # Alias for MINIO_SECRET_KEY
     AWS_REGION: str = "us-east-1"
     
-    # Database - read from Railway environment, convert postgresql:// to postgresql+psycopg2://
-    DATABASE_URL: str = os.getenv("DATABASE_URL", "postgresql+psycopg2://vericase:vericase@postgres:5432/vericase").replace("postgresql://", "postgresql+psycopg2://")
+    # Database - Railway provides postgresql://, we need postgresql+psycopg2://
+    DATABASE_URL: str = "postgresql+psycopg2://vericase:vericase@postgres:5432/vericase"
+    
+    @field_validator('DATABASE_URL')
+    @classmethod
+    def convert_postgres_url(cls, v: str) -> str:
+        """Convert postgresql:// to postgresql+psycopg2:// for SQLAlchemy"""
+        if v and v.startswith('postgresql://'):
+            return v.replace('postgresql://', 'postgresql+psycopg2://', 1)
+        return v
     
     # OpenSearch settings
     OPENSEARCH_HOST: str = "opensearch"
