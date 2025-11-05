@@ -716,7 +716,10 @@
   </div>
 
   <script>
-    const API_BASE = window.location.origin.replace(':8010', ':8010');
+        // ===========================
+    // Global Configuration
+    // ===========================
+    const API_BASE = window.location.origin;
 
     // Check if already logged in
     const token = localStorage.getItem('token');
@@ -730,7 +733,7 @@
       const pwd = document.getElementById('pwd').value;
 
       try {
-        const response = await fetch(`${API_BASE}/auth/login`, {
+        const response = await fetch(`${API_BASE}/api/auth/login`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ email, password: pwd })

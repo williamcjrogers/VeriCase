@@ -1673,6 +1673,11 @@
             loadEmails();
         });
 
+        // ===========================
+        // Global Configuration
+        // ===========================
+        const API_BASE = window.location.origin;
+
         function onGridReady(params) {
             gridApi = params.api;
             columnApi = params.columnApi;
@@ -1686,7 +1691,7 @@
         async function loadEmails() {
             showLoading(true);
             try {
-                const response = await fetch(`http://localhost:8010/api/cases/${caseId}/evidence`);
+                const response = await fetch(`${API_BASE}/api/cases/${caseId}/evidence`);
                 if (!response.ok) throw new Error('Failed to load emails');
                 
                 const data = await response.json();
@@ -1750,7 +1755,7 @@
 
         async function loadCaseInfo() {
             try {
-                const response = await fetch(`http://localhost:8010/api/cases/${caseId}`);
+                const response = await fetch(`${API_BASE}/api/cases/${caseId}`);
                 if (response.ok) {
                     const caseData = await response.json();
                     document.getElementById('caseNumber').textContent = caseData.case_number;
@@ -2051,7 +2056,7 @@
                     // Image preview - for now show a sample or use the attachment URL if available
                     previewContent.innerHTML = `
                         <div style="text-align: center;">
-                            <img src="http://localhost:8010/api/cases/${caseId}/evidence/${evidenceId}/attachment/${attachmentId}" 
+                            <img src="${API_BASE}/api/cases/${caseId}/evidence/${evidenceId}/attachment/${attachmentId}" 
                                  style="max-width: 100%; max-height: 100%; object-fit: contain;"
                                  onerror="this.onerror=null; this.parentElement.innerHTML='<div style=\\'text-align: center; padding: 50px;\\'>\\n<div style=\\'font-size: 4rem; margin-bottom: 20px;\\'>🖼️</div>\\n<h3 style=\\'color: #1f2937; margin-bottom: 10px;\\'>${fileName}</h3>\\n<p style=\\'color: #6b7280; margin-bottom: 20px;\\'>Image preview currently unavailable.</p>\\n<button onclick=\\'downloadCurrentAttachment()\\' style=\\'background: #3b82f6; color: white; border: none; padding: 10px 24px; border-radius: 6px; cursor: pointer;\\'>⬇ Download Image</button>\\n</div>';" />
                         </div>
@@ -2063,7 +2068,7 @@
                             <div style="font-size: 4rem; margin-bottom: 20px;">📄</div>
                             <h3 style="color: #1f2937; margin-bottom: 10px;">${fileName}</h3>
                             <p style="color: #6b7280; margin-bottom: 20px;">PDF preview will open in new tab.</p>
-                            <button onclick="window.open('http://localhost:8010/api/cases/${caseId}/evidence/${evidenceId}/attachment/${attachmentId}', '_blank')" 
+                            <button onclick="window.open('${API_BASE}/api/cases/${caseId}/evidence/${evidenceId}/attachment/${attachmentId}', '_blank')" 
                                     style="background: #3b82f6; color: white; border: none; padding: 10px 24px;
                                            border-radius: 6px; cursor: pointer; font-size: 0.95rem; font-weight: 500; margin-right: 10px;">
                                 📖 Open PDF
@@ -2140,7 +2145,7 @@
         window.downloadAttachment = function(evidenceId, attachmentId, fileName) {
             // For now, open in new tab which will trigger download for most file types
             // The actual endpoint would need to be implemented in the backend
-            const url = `http://localhost:8010/api/cases/${caseId}/evidence/${evidenceId}/attachment/${attachmentId}`;
+            const url = `${API_BASE}/api/cases/${caseId}/evidence/${evidenceId}/attachment/${attachmentId}`;
             
             // Try to force download using a temporary link
             const link = document.createElement('a');
@@ -2168,7 +2173,7 @@
 
         // Legacy download function (if needed for other parts of the app)
         function downloadDocumentLegacy(documentId, filename) {
-            window.open(`http://localhost:8010/documents/${documentId}/download?filename=${encodeURIComponent(filename)}`, '_blank');
+            window.open(`${API_BASE}/documents/${documentId}/download?filename=${encodeURIComponent(filename)}`, '_blank');
         }
 
         // ==================== PROGRAMME ANALYSIS FUNCTIONS ====================
@@ -2179,8 +2184,8 @@
          */
         window.linkActivityToEmail = async function(emailId) {
             try {
-                // Fetch available programme activities from uploaded Asta files
-                const response = await fetch(`http://localhost:8010/api/cases/${caseId}/programme/activities`, {
+                // Fetch available programme activities from uploaded Asta programme files
+                const response = await fetch(`${API_BASE}/api/cases/${caseId}/programme/activities`, {
                     headers: {
                         'Authorization': `Bearer ${localStorage.getItem('token')}`
                     }
@@ -2290,7 +2295,7 @@
         window.selectActivity = async function(emailId, activityId, activityName) {
             try {
                 // Save the link in the database
-                await fetch(`http://localhost:8010/api/cases/${caseId}/evidence/${emailId}/link-activity`, {
+                await fetch(`${API_BASE}/api/cases/${caseId}/evidence/${emailId}/link-activity`, {
                     method: 'POST',
                     headers: {
                         'Authorization': `Bearer ${localStorage.getItem('token')}`,
@@ -2327,7 +2332,7 @@
                 
                 // Fetch programme analysis data
                 const response = await fetch(
-                    `http://localhost:8010/api/cases/${caseId}/evidence/${emailId}/programme-analysis?activity=${activityId}`,
+                    `${API_BASE}/api/cases/${caseId}/evidence/${emailId}/programme-analysis?activity=${activityId}`,
                     {
                         headers: {
                             'Authorization': `Bearer ${localStorage.getItem('token')}`
@@ -2527,7 +2532,7 @@
                 showLoading(true, 'Generating report...');
                 
                 const response = await fetch(
-                    `http://localhost:8010/api/cases/${caseId}/evidence/${emailId}/programme-report?activity=${activityId}&format=pdf`,
+                    `${API_BASE}/api/cases/${caseId}/evidence/${emailId}/programme-report?activity=${activityId}&format=pdf`,
                     {
                         headers: {
                             'Authorization': `Bearer ${localStorage.getItem('token')}`
