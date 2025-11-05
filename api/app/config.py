@@ -1,4 +1,6 @@
 from pydantic_settings import BaseSettings
+import os
+
 class Settings(BaseSettings):
     # AWS mode flag - when true, use AWS S3 (IRSA) instead of MinIO
     USE_AWS_SERVICES: bool = False
@@ -15,8 +17,8 @@ class Settings(BaseSettings):
     S3_SECRET_KEY: str = "changeme"  # Alias for MINIO_SECRET_KEY
     AWS_REGION: str = "us-east-1"
     
-    # Database
-    DATABASE_URL: str = "postgresql+psycopg2://vericase:vericase@postgres:5432/vericase"
+    # Database - read from Railway environment, convert postgresql:// to postgresql+psycopg2://
+    DATABASE_URL: str = os.getenv("DATABASE_URL", "postgresql+psycopg2://vericase:vericase@postgres:5432/vericase").replace("postgresql://", "postgresql+psycopg2://")
     
     # OpenSearch settings
     OPENSEARCH_HOST: str = "opensearch"
